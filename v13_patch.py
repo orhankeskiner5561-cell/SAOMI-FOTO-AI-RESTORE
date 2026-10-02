@@ -7,7 +7,7 @@ if "class EmailRateLimitException" not in s:
 
 class SupabaseAuthClient {""")
 
-old='''runCatching{http.newCall(request).execute().use{r->val raw=r.body?.string().orEmpty();if(!r.isSuccessful) error("Onay bağlantısı gönderilemedi: \${r.code} \${raw.take(160)}")}}'''
+old='''runCatching{http.newCall(request).execute().use{r->val raw=r.body?.string().orEmpty();if(!r.isSuccessful) error("Onay bağlantısı gönderilemedi: ${r.code} ${raw.take(160)}")}}'''
 new='''runCatching {
             http.newCall(request).execute().use { resp ->
                 val raw = resp.body?.string().orEmpty()
@@ -20,7 +20,7 @@ new='''runCatching {
                             ?: 300
                         throw EmailRateLimitException(retry.coerceIn(1, 3600))
                     }
-                    error("Onay bağlantısı gönderilemedi: \${resp.code} \${raw.take(160)}")
+                    error("Onay bağlantısı gönderilemedi: ${resp.code} ${raw.take(160)}")
                 }
             }
         }'''
