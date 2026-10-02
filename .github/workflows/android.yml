@@ -1,0 +1,40 @@
+name: Android APK - AI bundled
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack v0.3 source
+        run: |
+          unzip -oq SAOMI_FOTO_AI_RESTORE_v0.3.zip -d .
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Download RealSR / Real-ESRGAN Android runtime
+        run: |
+          mkdir -p app/src/main/assets
+          curl -L --fail             https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip             -o /tmp/realsr-assets.zip
+          unzip -q /tmp/realsr-assets.zip -d app/src/main/assets
+          find app/src/main/assets/realsr -maxdepth 2 -type f | head -30
+
+      - name: Build debug APK
+        run: gradle assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SAOMI-FOTO-AI-RESTORE-v0.3
+          path: app/build/outputs/apk/debug/app-debug.apk
