@@ -15,8 +15,7 @@ android {
         versionCode = 9
         versionName = "0.9.0"
 
-        buildConfigField("String", "LIVEKIT_URL", "\"\"
-")
+        buildConfigField("String", "LIVEKIT_URL", "\"\"")
         buildConfigField("String", "TOKEN_ENDPOINT", "\"https://ecbzcexhpzntgrfpizxc.supabase.co/functions/v1/livekit-token\"")
         buildConfigField("String", "BACKEND_BASE_URL", "\"https://ecbzcexhpzntgrfpizxc.supabase.co\"")
         buildConfigField("String", "SUPABASE_URL", "\"https://ecbzcexhpzntgrfpizxc.supabase.co\"")
