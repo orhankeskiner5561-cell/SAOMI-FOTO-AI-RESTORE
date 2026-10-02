@@ -21,6 +21,9 @@ jobs:
       - name: Apply v0.12 Android 16 audio fix
         working-directory: melehat_build
         run: python3 ../v12_patch.py
+      - name: Show auth source before v0.13
+        working-directory: melehat_build
+        run: sed -n '1,180p' app/src/main/java/com/saomi/telsiz/auth/SupabaseAuthClient.kt
       - name: Apply v0.13 Supabase-synced cooldown
         working-directory: melehat_build
         run: python3 ../v13_patch.py
