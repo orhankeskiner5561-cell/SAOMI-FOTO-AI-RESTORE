@@ -10,38 +10,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Unpack MELEHAT v0.10 source
+      - name: Unpack base source
         run: |
           rm -rf melehat_build
           mkdir melehat_build
           unzip -oq melehat_v10.zip -d melehat_build
-
-      - name: Apply v0.11 cooldown patch
+      - name: Apply v0.11 login cooldown
         working-directory: melehat_build
         run: python3 ../v11_patch.py
-
-      - name: Apply v0.12 audio focus fix
+      - name: Apply v0.12 Android 16 audio fix
         working-directory: melehat_build
-        run: python3 ../v12_audiofocus_patch.py
-
+        run: python3 ../v12_patch.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
-
-      - name: Build signed debug APK
+      - name: Build APK
         working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
-
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX.apk
-
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.12-AUDIOFIX.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX
-          path: MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX.apk
+          name: MELEHAT-TELSIZ-v0.12-AUDIOFIX
+          path: MELEHAT-TELSIZ-v0.12-AUDIOFIX.apk
