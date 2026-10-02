@@ -35,6 +35,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v14_patch.py
 
+      - name: Apply v0.14 compile fixes
+        working-directory: melehat_build
+        run: python3 ../v14_fix_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
