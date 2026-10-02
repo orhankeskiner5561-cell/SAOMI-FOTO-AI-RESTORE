@@ -39,6 +39,27 @@ jobs:
           PY
           grep -n -A12 -B2 "compileOptions" app/build.gradle.kts
 
+      - name: Fix FaceProtector bitmap source rect
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/java/com/saomi/fotoairestore/FaceProtector.kt")
+          s = p.read_text()
+          old = "            val src = face.rect\n            val dst = RectF("
+          new = """            val srcF = face.rect
+            val src = android.graphics.Rect(
+                srcF.left.toInt(),
+                srcF.top.toInt(),
+                srcF.right.toInt(),
+                srcF.bottom.toInt()
+            )
+            val dst = RectF("""
+          if old not in s:
+              raise SystemExit("FaceProtector patch target not found")
+          p.write_text(s.replace(old, new))
+          PY
+          grep -n -A14 -B3 "val srcF" app/src/main/java/com/saomi/fotoairestore/FaceProtector.kt
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
