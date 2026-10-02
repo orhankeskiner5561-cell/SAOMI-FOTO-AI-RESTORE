@@ -21,6 +21,9 @@ jobs:
       - name: Apply v0.12 Android 16 audio fix
         working-directory: melehat_build
         run: python3 ../v12_patch.py
+      - name: Apply v0.13 Supabase-synced cooldown
+        working-directory: melehat_build
+        run: python3 ../v13_patch.py
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -32,8 +35,8 @@ jobs:
         working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.12-AUDIOFIX.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.12-AUDIOFIX
-          path: MELEHAT-TELSIZ-v0.12-AUDIOFIX.apk
+          name: MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC
+          path: MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC.apk
