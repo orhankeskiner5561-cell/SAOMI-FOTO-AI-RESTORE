@@ -17,6 +17,28 @@ jobs:
           unzip -t /tmp/source.zip
           unzip -oq /tmp/source.zip -d .
 
+      - name: Align Java and Kotlin JVM targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/build.gradle.kts")
+          s = p.read_text()
+          marker = "    buildFeatures { compose = true }"
+          insert = """    compileOptions {
+              sourceCompatibility = JavaVersion.VERSION_17
+              targetCompatibility = JavaVersion.VERSION_17
+          }
+          kotlin {
+              jvmToolchain(17)
+          }
+
+          """
+          if "sourceCompatibility = JavaVersion.VERSION_17" not in s:
+              s = s.replace(marker, insert + marker)
+          p.write_text(s)
+          PY
+          grep -n -A12 -B2 "compileOptions" app/build.gradle.kts
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -28,13 +50,15 @@ jobs:
 
       - name: Download RealSR / Real-ESRGAN Android runtime
         run: |
-          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/assets/realsr
           curl -L --fail https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip -o /tmp/realsr-assets.zip
-          unzip -q /tmp/realsr-assets.zip -d app/src/main/assets
-          find app/src/main/assets/realsr -maxdepth 2 -type f | head -30
+          unzip -q /tmp/realsr-assets.zip -d app/src/main/assets/realsr
+          test -f app/src/main/assets/realsr/realsr-ncnn
+          test -f app/src/main/assets/realsr/models-Real-ESRGAN/x4.param
+          echo "Real-ESRGAN assets ready."
 
       - name: Build debug APK
-        run: gradle assembleDebug
+        run: gradle assembleDebug --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
