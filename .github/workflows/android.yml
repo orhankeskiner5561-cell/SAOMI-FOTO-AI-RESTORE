@@ -69,30 +69,27 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Download RealSR / Real-ESRGAN Android runtime
+      - name: Download slim RealSR / Real-ESRGAN runtime
         run: |
-          rm -rf /tmp/realsr-unpacked
-          mkdir -p /tmp/realsr-unpacked app/src/main/assets/realsr
+          rm -rf /tmp/realsr-unpacked app/src/main/assets/realsr
+          mkdir -p /tmp/realsr-unpacked app/src/main/assets/realsr/models-Real-ESRGAN
           curl -L --fail https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip -o /tmp/realsr-assets.zip
           unzip -q /tmp/realsr-assets.zip -d /tmp/realsr-unpacked
-          echo "Archive layout:"
-          find /tmp/realsr-unpacked -maxdepth 4 -type f | head -80
-          BIN="$(find /tmp/realsr-unpacked -type f -name realsr-ncnn | head -1)"
-          if [ -z "$BIN" ]; then
-            echo "realsr-ncnn not found in assets.zip"
-            exit 1
-          fi
-          ROOT="$(dirname "$BIN")"
-          cp -a "$ROOT"/. app/src/main/assets/realsr/
-          test -f app/src/main/assets/realsr/realsr-ncnn
-          test -f app/src/main/assets/realsr/models-Real-ESRGAN/x4.param
-          test -f app/src/main/assets/realsr/models-Real-ESRGAN/x4.bin
-          echo "Real-ESRGAN assets ready from $ROOT"
+          ROOT="$(dirname "$(find /tmp/realsr-unpacked -type f -name realsr-ncnn | head -1)")"
+          test -n "$ROOT"
+          cp "$ROOT/realsr-ncnn" app/src/main/assets/realsr/
+          cp "$ROOT/models-Real-ESRGAN/x4.param" app/src/main/assets/realsr/models-Real-ESRGAN/
+          cp "$ROOT/models-Real-ESRGAN/x4.bin" app/src/main/assets/realsr/models-Real-ESRGAN/
+          for f in libncnn.so libomp.so libc++_shared.so; do
+            if [ -f "$ROOT/$f" ]; then cp "$ROOT/$f" app/src/main/assets/realsr/; fi
+          done
+          echo "Slim AI assets:"
+          du -ah app/src/main/assets/realsr | sort -h | tail -20
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
-          name: SAOMI-FOTO-AI-RESTORE-v0.3
+          name: SAOMI-FOTO-AI-RESTORE-v0.3-slim
           path: app/build/outputs/apk/debug/app-debug.apk
