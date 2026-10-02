@@ -11,12 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract MELEHAT v0.10 source
+      - name: Unpack MELEHAT v0.10 source
         run: |
           rm -rf melehat_build
-          mkdir -p melehat_build
-          unzip -t melehat_v10.zip
+          mkdir melehat_build
           unzip -oq melehat_v10.zip -d melehat_build
+          find melehat_build -maxdepth 2 -type f | sort
 
       - uses: actions/setup-java@v4
         with:
@@ -27,14 +27,14 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Build APK
+      - name: Build signed debug APK
         working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.10-MAGIC-LINK.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.10-MAGIC-LINK
-          path: MELEHAT-TELSIZ-v0.10-MAGIC-LINK.apk
+          name: MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED
+          path: MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED.apk
