@@ -1,0 +1,54 @@
+name: MELEHAT TELSIZ Android v0.9
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "melehat_v09_patch/**"
+      - ".github/workflows/melehat-v09.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore MELEHAT v0.8 source
+        run: |
+          git show edd2c667283c8f1dc7b5a2e55c229fe94a58c916:melehat_source.b64 | tr -d '\n\r' | base64 -d > /tmp/melehat.zip
+          unzip -t /tmp/melehat.zip
+          unzip -oq /tmp/melehat.zip -d .
+
+      - name: Apply v0.9 email OTP patch
+        run: |
+          cp melehat_v09_patch/app/build.gradle.kts app/build.gradle.kts
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/model/UserProfile.kt app/src/main/java/com/saomi/telsiz/model/UserProfile.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/auth/AuthState.kt app/src/main/java/com/saomi/telsiz/auth/AuthState.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/auth/SupabaseAuthClient.kt app/src/main/java/com/saomi/telsiz/auth/SupabaseAuthClient.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/data/SessionStore.kt app/src/main/java/com/saomi/telsiz/data/SessionStore.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/data/LocalStore.kt app/src/main/java/com/saomi/telsiz/data/LocalStore.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/data/BackendApi.kt app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
+          cp melehat_v09_patch/app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Build debug APK
+        run: gradle assembleDebug --stacktrace
+
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.9-EMAIL-OTP.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MELEHAT-TELSIZ-v0.9-EMAIL-OTP
+          path: MELEHAT-TELSIZ-v0.9-EMAIL-OTP.apk
