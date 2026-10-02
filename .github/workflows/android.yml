@@ -17,6 +17,18 @@ jobs:
           unzip -t /tmp/source.zip
           unzip -oq /tmp/source.zip -d .
 
+      - name: Apply v0.4 comparison UI
+        run: |
+          cp overrides/MainActivity.kt app/src/main/java/com/saomi/fotoairestore/MainActivity.kt
+          cp overrides/RestoreViewModel.kt app/src/main/java/com/saomi/fotoairestore/RestoreViewModel.kt
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/build.gradle.kts")
+          s = p.read_text().replace('versionCode = 3','versionCode = 4').replace('versionName = "0.3.0"','versionName = "0.4.0"')
+          p.write_text(s)
+          PY
+          grep -n "versionCode\|versionName" app/build.gradle.kts
+
       - name: Align Java and Kotlin JVM targets
         run: |
           python3 - <<'PY'
@@ -91,5 +103,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: SAOMI-FOTO-AI-RESTORE-v0.3-slim
+          name: SAOMI-FOTO-AI-RESTORE-v0.4-slim
           path: app/build/outputs/apk/debug/app-debug.apk
