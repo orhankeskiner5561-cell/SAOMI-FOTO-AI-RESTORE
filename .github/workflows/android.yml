@@ -1,4 +1,4 @@
-name: Android APK - AI bundled
+name: Android APK - v0.4 compare
 
 on:
   workflow_dispatch:
@@ -50,6 +50,12 @@ jobs:
           p.write_text(s)
           PY
           grep -n -A12 -B2 "compileOptions" app/build.gradle.kts
+
+      - name: Show UI source for v0.4
+        run: |
+          echo "===== MAIN_ACTIVITY_BEGIN ====="
+          cat app/src/main/java/com/saomi/fotoairestore/MainActivity.kt
+          echo "===== MAIN_ACTIVITY_END ====="
 
       - name: Fix FaceProtector bitmap source rect
         run: |
