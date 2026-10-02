@@ -16,7 +16,40 @@ jobs:
           rm -rf melehat_build
           mkdir melehat_build
           unzip -oq melehat_v10.zip -d melehat_build
-          find melehat_build -maxdepth 2 -type f | sort
+
+      - name: Apply v0.11 rate-limit UX patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("melehat_build/app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
+          s=p.read_text()
+
+          s=s.replace('import kotlinx.coroutines.launch','import kotlinx.coroutines.launch\nimport kotlinx.coroutines.delay')
+
+          s=s.replace(
+              'var session by remember(authCallbackNonce){mutableStateOf(sessionStore.load())}; var loginPhone by remember{mutableStateOf(session?.phone.orEmpty())}; var loginEmail by remember{mutableStateOf(session?.email.orEmpty())}; var linkSent by remember{mutableStateOf(false)}; var authMessage by remember{mutableStateOf("")}',
+              'var session by remember(authCallbackNonce){mutableStateOf(sessionStore.load())}; var loginPhone by remember{mutableStateOf(session?.phone.orEmpty())}; var loginEmail by remember{mutableStateOf(session?.email.orEmpty())}; var linkSent by remember{mutableStateOf(false)}; var authMessage by remember{mutableStateOf("")}; var resendWait by remember{mutableIntStateOf(0)}'
+          )
+
+          marker='val infinite=rememberInfiniteTransition(label="rings")'
+          if marker in s and 'LaunchedEffect(resendWait)' not in s:
+              s=s.replace(marker,'LaunchedEffect(resendWait){ if(resendWait>0){ delay(1000); resendWait-- } }\n val infinite=rememberInfiniteTransition(label="rings")')
+
+          old='''Button(onClick={scope.launch{authMessage="Gönderiliyor…";sessionStore.savePending(loginPhone,loginEmail);auth.sendMagicLink(loginEmail).onSuccess{linkSent=true;authMessage="Giriş bağlantısı e-postanıza gönderildi. Maildeki bağlantıya dokunun; MELEHAT TELSİZ otomatik açılır."}.onFailure{authMessage=it.message.orEmpty()}}},enabled=loginPhone.isNotBlank()&&loginEmail.contains("@"),modifier=Modifier.fillMaxWidth()){Text(if(linkSent)"Bağlantıyı Tekrar Gönder" else "E-postaya Giriş Bağlantısı Gönder")}'''
+          new='''Button(onClick={scope.launch{authMessage="Gönderiliyor…";sessionStore.savePending(loginPhone,loginEmail);auth.sendMagicLink(loginEmail).onSuccess{linkSent=true;resendWait=60;authMessage="Giriş bağlantısı e-postanıza gönderildi. Maildeki Sign in bağlantısına dokunun."}.onFailure{e->val m=e.message.orEmpty();if(m.contains("429")||m.contains("over_email_send_rate_limit")){resendWait=60;authMessage="Çok fazla e-posta isteği gönderildi. Lütfen kısa bir süre bekleyip tekrar deneyin."}else{authMessage=m}}}},enabled=loginPhone.isNotBlank()&&loginEmail.contains("@")&&resendWait==0,modifier=Modifier.fillMaxWidth()){Text(if(resendWait>0)"Tekrar göndermek için $resendWait sn" else if(linkSent)"Bağlantıyı Tekrar Gönder" else "E-postaya Giriş Bağlantısı Gönder")}'''
+          if old not in s:
+              raise SystemExit("v0.10 login button block not found")
+          s=s.replace(old,new)
+
+          s=s.replace('Text("v0.10 • E-posta bağlantısı • Profil • Kanal • PTT"','Text("v0.11 • E-posta bağlantısı • Profil • Kanal • PTT"')
+          s=s.replace('Text("MELEHAT TELSİZ v0.10"','Text("MELEHAT TELSİZ v0.11"')
+
+          p.write_text(s)
+
+          g=Path("melehat_build/app/build.gradle.kts")
+          t=g.read_text().replace('versionCode = 10','versionCode = 11').replace('versionName = "0.10.0"','versionName = "0.11.0"')
+          g.write_text(t)
+          PY
 
       - uses: actions/setup-java@v4
         with:
@@ -27,14 +60,14 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Build signed debug APK
+      - name: Build APK
         working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.11-RATE-LIMIT.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED
-          path: MELEHAT-TELSIZ-v0.10-MAGIC-LINK-FIXED.apk
+          name: MELEHAT-TELSIZ-v0.11-RATE-LIMIT
+          path: MELEHAT-TELSIZ-v0.11-RATE-LIMIT.apk
