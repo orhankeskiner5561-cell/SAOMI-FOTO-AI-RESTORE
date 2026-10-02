@@ -11,13 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Rebuild MELEHAT source
+      - name: Rebuild MELEHAT v0.9 source
         run: |
           rm -rf melehat_build
           mkdir -p melehat_build
           base64 -d melehat_source.b64 > /tmp/melehat.zip
           unzip -t /tmp/melehat.zip
           unzip -oq /tmp/melehat.zip -d melehat_build
+
+      - name: Apply v0.10 magic-link patch
+        working-directory: melehat_build
+        run: python3 ../v10_patch.py
 
       - uses: actions/setup-java@v4
         with:
@@ -33,9 +37,9 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.8.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.10-MAGIC-LINK.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.8
-          path: MELEHAT-TELSIZ-v0.8.apk
+          name: MELEHAT-TELSIZ-v0.10-MAGIC-LINK
+          path: MELEHAT-TELSIZ-v0.10-MAGIC-LINK.apk
