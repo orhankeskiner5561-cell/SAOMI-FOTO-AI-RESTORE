@@ -10,36 +10,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Unpack base source
         run: |
           rm -rf melehat_build
           mkdir melehat_build
           unzip -oq melehat_v10.zip -d melehat_build
-      - name: Apply v0.11 login cooldown
-        working-directory: melehat_build
-        run: python3 ../v11_patch.py
-      - name: Apply v0.12 Android 16 audio fix
+
+      - name: Apply Android 16 audio fix
         working-directory: melehat_build
         run: python3 ../v12_patch.py
-      - name: Show auth source before v0.13
+
+      - name: Apply v0.14 six-digit email OTP
         working-directory: melehat_build
-        run: sed -n '1,180p' app/src/main/java/com/saomi/telsiz/auth/SupabaseAuthClient.kt
-      - name: Apply v0.13 Supabase-synced cooldown
-        working-directory: melehat_build
-        run: python3 ../v13_patch.py
+        run: python3 ../v14_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+
       - name: Build APK
         working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
+
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.14-EMAIL-OTP.apk
+
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC
-          path: MELEHAT-TELSIZ-v0.13-SUPABASE-SYNC.apk
+          name: MELEHAT-TELSIZ-v0.14-EMAIL-OTP
+          path: MELEHAT-TELSIZ-v0.14-EMAIL-OTP.apk
