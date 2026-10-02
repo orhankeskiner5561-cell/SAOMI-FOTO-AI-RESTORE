@@ -50,12 +50,23 @@ jobs:
 
       - name: Download RealSR / Real-ESRGAN Android runtime
         run: |
-          mkdir -p app/src/main/assets/realsr
+          rm -rf /tmp/realsr-unpacked
+          mkdir -p /tmp/realsr-unpacked app/src/main/assets/realsr
           curl -L --fail https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip -o /tmp/realsr-assets.zip
-          unzip -q /tmp/realsr-assets.zip -d app/src/main/assets/realsr
+          unzip -q /tmp/realsr-assets.zip -d /tmp/realsr-unpacked
+          echo "Archive layout:"
+          find /tmp/realsr-unpacked -maxdepth 4 -type f | head -80
+          BIN="$(find /tmp/realsr-unpacked -type f -name realsr-ncnn | head -1)"
+          if [ -z "$BIN" ]; then
+            echo "realsr-ncnn not found in assets.zip"
+            exit 1
+          fi
+          ROOT="$(dirname "$BIN")"
+          cp -a "$ROOT"/. app/src/main/assets/realsr/
           test -f app/src/main/assets/realsr/realsr-ncnn
           test -f app/src/main/assets/realsr/models-Real-ESRGAN/x4.param
-          echo "Real-ESRGAN assets ready."
+          test -f app/src/main/assets/realsr/models-Real-ESRGAN/x4.bin
+          echo "Real-ESRGAN assets ready from $ROOT"
 
       - name: Build debug APK
         run: gradle assembleDebug --stacktrace
