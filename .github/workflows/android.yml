@@ -11,9 +11,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unpack v0.3 source
+      - name: Rebuild source archive
         run: |
-          unzip -oq SAOMI_FOTO_AI_RESTORE_v0.3.zip -d .
+          cat source_parts/part*.b64 | tr -d '\n\r' | base64 -d > /tmp/source.zip
+          unzip -t /tmp/source.zip
+          unzip -oq /tmp/source.zip -d .
 
       - uses: actions/setup-java@v4
         with:
@@ -27,7 +29,7 @@ jobs:
       - name: Download RealSR / Real-ESRGAN Android runtime
         run: |
           mkdir -p app/src/main/assets
-          curl -L --fail             https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip             -o /tmp/realsr-assets.zip
+          curl -L --fail https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip -o /tmp/realsr-assets.zip
           unzip -q /tmp/realsr-assets.zip -d app/src/main/assets
           find app/src/main/assets/realsr -maxdepth 2 -type f | head -30
 
