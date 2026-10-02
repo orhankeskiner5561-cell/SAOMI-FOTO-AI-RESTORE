@@ -1,4 +1,4 @@
-name: Android APK - v0.4 compare
+name: MELEHAT TELSIZ Android APK
 
 on:
   workflow_dispatch:
@@ -11,72 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Rebuild source archive
+      - name: Rebuild MELEHAT source
         run: |
-          cat source_parts/part*.b64 | tr -d '\n\r' | base64 -d > /tmp/source.zip
-          unzip -t /tmp/source.zip
-          unzip -oq /tmp/source.zip -d .
-
-      - name: Apply v0.4 comparison UI
-        run: |
-          cp overrides/MainActivity.kt app/src/main/java/com/saomi/fotoairestore/MainActivity.kt
-          cp overrides/RestoreViewModel.kt app/src/main/java/com/saomi/fotoairestore/RestoreViewModel.kt
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/build.gradle.kts")
-          s = p.read_text().replace('versionCode = 3','versionCode = 4').replace('versionName = "0.3.0"','versionName = "0.4.0"')
-          p.write_text(s)
-          PY
-          grep -n "versionCode\|versionName" app/build.gradle.kts
-
-      - name: Align Java and Kotlin JVM targets
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/build.gradle.kts")
-          s = p.read_text()
-          marker = "    buildFeatures { compose = true }"
-          insert = """    compileOptions {
-              sourceCompatibility = JavaVersion.VERSION_17
-              targetCompatibility = JavaVersion.VERSION_17
-          }
-          kotlin {
-              jvmToolchain(17)
-          }
-
-          """
-          if "sourceCompatibility = JavaVersion.VERSION_17" not in s:
-              s = s.replace(marker, insert + marker)
-          p.write_text(s)
-          PY
-          grep -n -A12 -B2 "compileOptions" app/build.gradle.kts
-
-      - name: Show UI source for v0.4
-        run: |
-          echo "===== MAIN_ACTIVITY_BEGIN ====="
-          cat app/src/main/java/com/saomi/fotoairestore/MainActivity.kt
-          echo "===== MAIN_ACTIVITY_END ====="
-
-      - name: Fix FaceProtector bitmap source rect
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p = Path("app/src/main/java/com/saomi/fotoairestore/FaceProtector.kt")
-          s = p.read_text()
-          old = "            val src = face.rect\n            val dst = RectF("
-          new = """            val srcF = face.rect
-            val src = android.graphics.Rect(
-                srcF.left.toInt(),
-                srcF.top.toInt(),
-                srcF.right.toInt(),
-                srcF.bottom.toInt()
-            )
-            val dst = RectF("""
-          if old not in s:
-              raise SystemExit("FaceProtector patch target not found")
-          p.write_text(s.replace(old, new))
-          PY
-          grep -n -A14 -B3 "val srcF" app/src/main/java/com/saomi/fotoairestore/FaceProtector.kt
+          rm -rf melehat_build
+          mkdir -p melehat_build
+          base64 -d melehat_source.b64 > /tmp/melehat.zip
+          unzip -t /tmp/melehat.zip
+          unzip -oq /tmp/melehat.zip -d melehat_build
 
       - uses: actions/setup-java@v4
         with:
@@ -87,27 +28,14 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Download slim RealSR / Real-ESRGAN runtime
-        run: |
-          rm -rf /tmp/realsr-unpacked app/src/main/assets/realsr
-          mkdir -p /tmp/realsr-unpacked app/src/main/assets/realsr/models-Real-ESRGAN
-          curl -L --fail https://github.com/tumuyan/RealSR-NCNN-Android/releases/download/1.11.1/assets.zip -o /tmp/realsr-assets.zip
-          unzip -q /tmp/realsr-assets.zip -d /tmp/realsr-unpacked
-          ROOT="$(dirname "$(find /tmp/realsr-unpacked -type f -name realsr-ncnn | head -1)")"
-          test -n "$ROOT"
-          cp "$ROOT/realsr-ncnn" app/src/main/assets/realsr/
-          cp "$ROOT/models-Real-ESRGAN/x4.param" app/src/main/assets/realsr/models-Real-ESRGAN/
-          cp "$ROOT/models-Real-ESRGAN/x4.bin" app/src/main/assets/realsr/models-Real-ESRGAN/
-          for f in libncnn.so libomp.so libc++_shared.so; do
-            if [ -f "$ROOT/$f" ]; then cp "$ROOT/$f" app/src/main/assets/realsr/; fi
-          done
-          echo "Slim AI assets:"
-          du -ah app/src/main/assets/realsr | sort -h | tail -20
-
-      - name: Build debug APK
+      - name: Build APK
+        working-directory: melehat_build
         run: gradle assembleDebug --stacktrace
+
+      - name: Prepare APK
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.8.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: SAOMI-FOTO-AI-RESTORE-v0.4-slim
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: MELEHAT-TELSIZ-v0.8
+          path: MELEHAT-TELSIZ-v0.8.apk
