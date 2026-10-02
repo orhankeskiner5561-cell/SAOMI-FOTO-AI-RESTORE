@@ -21,6 +21,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v11_patch.py
 
+      - name: Apply v0.12 audio focus fix
+        working-directory: melehat_build
+        run: python3 ../v12_audiofocus_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -35,9 +39,9 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.11-COOLDOWN.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.11-COOLDOWN
-          path: MELEHAT-TELSIZ-v0.11-COOLDOWN.apk
+          name: MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX
+          path: MELEHAT-TELSIZ-v0.12-AUDIO-FOCUS-FIX.apk
