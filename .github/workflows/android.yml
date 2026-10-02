@@ -21,6 +21,16 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v12_patch.py
 
+      - name: Repair v0.14 patch line ending
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('v14_patch.py')
+          s=p.read_text()
+          s=s.replace('\\ns = s.replace("MELEHAT TELSİZ v0.10"', '\ns = s.replace("MELEHAT TELSİZ v0.10"')
+          p.write_text(s)
+          PY
+
       - name: Apply v0.14 six-digit email OTP
         working-directory: melehat_build
         run: python3 ../v14_patch.py
