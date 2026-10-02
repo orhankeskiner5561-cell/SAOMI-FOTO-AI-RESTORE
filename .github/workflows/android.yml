@@ -11,18 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Rebuild MELEHAT source
+      - name: Extract MELEHAT v0.10 source
         run: |
           rm -rf melehat_build
           mkdir -p melehat_build
-          cat melehat_parts/part*.b64 > /tmp/melehat.b64
-          base64 -d /tmp/melehat.b64 > /tmp/melehat.zip
-          unzip -t /tmp/melehat.zip
-          unzip -oq /tmp/melehat.zip -d melehat_build
-
-      - name: Apply v0.10 magic-link patch
-        working-directory: melehat_build
-        run: python3 ../v10_patch.py
+          unzip -t melehat_v10.zip
+          unzip -oq melehat_v10.zip -d melehat_build
 
       - uses: actions/setup-java@v4
         with:
