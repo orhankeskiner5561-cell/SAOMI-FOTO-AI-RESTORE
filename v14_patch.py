@@ -294,7 +294,7 @@ new = '''                if (otpSent) {
 if old not in s: raise SystemExit("magic-link login block not found")
 s = s.replace(old, new, 1)
 
-s = s.replace("MELEHAT TELSİZ v0.10", "MELEHAT TELSİZ v0.14")
+s = s.replace("linkSent = false", "otpSent = false\\n                    otpCode = \\\"\\\"")\ns = s.replace("MELEHAT TELSİZ v0.10", "MELEHAT TELSİZ v0.14")
 s = s.replace("• E-posta güvenli giriş bağlantısı", "• E-postaya 6 haneli güvenlik kodu")
 s = s.replace("• Yeni telefonda aynı e-postaya yeni bağlantı gönderilir", "• Yeni telefonda aynı e-postaya yeni 6 haneli kod gönderilir")
 
