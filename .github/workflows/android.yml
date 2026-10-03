@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MELEHAT-TELSIZ-v0.23-VOLUME-PTT
-          path: melehat_build/MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          path: MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
           if-no-files-found: error
 
       - name: Install APK on Android emulator
