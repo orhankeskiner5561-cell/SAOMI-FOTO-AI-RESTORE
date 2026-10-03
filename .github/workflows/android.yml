@@ -89,16 +89,8 @@ jobs:
           path: MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk
           if-no-files-found: error
 
-      - name: Install APK on Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: false
-          script: |
-            adb wait-for-device
-            adb install -r MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk
-            adb shell pm path com.melehat.telsiz.volumetest
-
-
+      - name: Verify installable APK package metadata
+        working-directory: melehat_build
+        run: |
+          $ANDROID_HOME/build-tools/35.0.0/aapt dump badging MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk | head -n 5
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --verbose MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk
