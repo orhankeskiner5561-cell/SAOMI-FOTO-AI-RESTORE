@@ -55,6 +55,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v23_auth_refresh_patch.py
 
+      - name: Apply v0.24 PTT crash fix
+        working-directory: melehat_build
+        run: python3 ../v24_fix_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -69,20 +73,20 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.24-VOLUME-PTT.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.24-VOLUME-PTT.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.24-VOLUME-PTT.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.23-VOLUME-PTT
-          path: MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          name: MELEHAT-TELSIZ-v0.24-VOLUME-PTT
+          path: MELEHAT-TELSIZ-v0.24-VOLUME-PTT.apk
           if-no-files-found: error
 
       - name: Install APK on Android emulator
@@ -92,6 +96,6 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: adb install -r MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          script: adb install -r MELEHAT-TELSIZ-v0.24-VOLUME-PTT.apk
 
 
