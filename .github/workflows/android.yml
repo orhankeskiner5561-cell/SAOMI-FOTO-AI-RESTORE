@@ -66,4 +66,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: MELEHAT-TELSIZ-v0.16-PTT-FIX
-          path: MELEHAT-TELSIZ-v0.15-OTP-FLEX.apk
+          path: MELEHAT-TELSIZ-v0.16-PTT-FIX.apk
