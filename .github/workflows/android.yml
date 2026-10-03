@@ -47,6 +47,16 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v16_patch.py
 
+      - name: Inspect auth session sources
+        working-directory: melehat_build
+        run: |
+          echo "===SESSION_STORE_BEGIN==="
+          cat app/src/main/java/com/saomi/telsiz/data/SessionStore.kt
+          echo "===SESSION_STORE_END==="
+          echo "===BACKEND_API_BEGIN==="
+          cat app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
+          echo "===BACKEND_API_END==="
+
       - name: Apply v0.23 clean safe volume PTT
         working-directory: melehat_build
         run: python3 ../v23_patch.py
