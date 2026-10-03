@@ -39,8 +39,7 @@ inject=r'''
             runCatching {
                 val client = OkHttpClient()
                 val request = Request.Builder()
-                    .url(BuildConfig.SUPABASE_URL.trimEnd('/') + "/storage/v1/object/public/app-updates/melehat/latest.json")
-                    .addHeader("apikey", BuildConfig.SUPABASE_PUBLISHABLE_KEY)
+                    .url("https://ecbzcexhpzntgrfpizxc.supabase.co/storage/v1/object/public/app-updates/melehat/latest.json")
                     .build()
                 client.newCall(request).execute().use { response ->
                     if (!response.isSuccessful) return@use null
@@ -79,7 +78,7 @@ inject=r'''
 '''
 
 # Determine context variable. Most app roots already use LocalContext; ensure one exists.
-bodypos=m.end()
+bodypos=bodypos+1
 prefix=s[bodypos:bodypos+1200]
 if not re.search(r'\bcontext\s*=\s*LocalContext\.current', prefix):
     if 'import androidx.compose.ui.platform.LocalContext' not in s:
