@@ -22,9 +22,9 @@ for line in imports:
         pos=s.find("\\n", s.find("package "))
         s=s[:pos+1]+line+"\\n"+s[pos+1:]
 
-marker='Text("v0.16 • PTT Güvenli Bas-Konuş"'
+marker='Text("v0.26 • Temiz PTT + Oturum Yenileme"'
 if marker not in s:
-    raise SystemExit("v0.16 version marker not found")
+    raise SystemExit("v0.26 version marker not found")
 s=s.replace(marker, 'UpdateChecker()\\n                Text("v0.27 • PTT + Otomatik Güncelleme"', 1)
 
 s += r'''
