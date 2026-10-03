@@ -51,6 +51,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v26_clean_auth_patch.py
 
+      - name: Apply v0.27 updater
+        working-directory: melehat_build
+        run: python3 ../v27_updater_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -65,20 +69,20 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.26-CLEAN-PTT.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.27-AUTO-UPDATE.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.26-CLEAN-PTT.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.26-CLEAN-PTT.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.27-AUTO-UPDATE.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.27-AUTO-UPDATE.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.26-CLEAN-PTT
-          path: MELEHAT-TELSIZ-v0.26-CLEAN-PTT.apk
+          name: MELEHAT-TELSIZ-v0.27-AUTO-UPDATE
+          path: MELEHAT-TELSIZ-v0.27-AUTO-UPDATE.apk
           if-no-files-found: error
 
       - name: Install APK on Android emulator
@@ -88,6 +92,6 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: adb install -r MELEHAT-TELSIZ-v0.26-CLEAN-PTT.apk
+          script: adb install -r MELEHAT-TELSIZ-v0.27-AUTO-UPDATE.apk
 
 
