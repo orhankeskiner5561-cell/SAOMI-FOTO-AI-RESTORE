@@ -95,7 +95,10 @@ jobs:
           api-level: 35
           arch: x86_64
           profile: pixel_6
-          disable-animations: true
-          script: adb install -r MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk
+          disable-animations: false
+          script: |
+            adb wait-for-device
+            adb install -r MELEHAT-TELSIZ-v0.29-MEDIA-VOLUME-PTT-TEST.apk
+            adb shell pm path com.melehat.telsiz.volumetest
 
 
