@@ -47,28 +47,9 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v16_patch.py
 
-      - name: Dump v0.16 service source
+      - name: Apply v0.23 clean safe volume PTT
         working-directory: melehat_build
-        run: |
-          echo "===PTT_SERVICE_BEGIN==="
-          cat app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
-          echo "===PTT_SERVICE_END==="
-
-      - name: Apply v0.17 global Volume-Up PTT
-        working-directory: melehat_build
-        run: python3 ../v17_patch.py
-
-      - name: Apply v0.18 release bump
-        working-directory: melehat_build
-        run: python3 ../v18_patch.py
-
-      - name: Apply v0.21 clean package
-        working-directory: melehat_build
-        run: python3 ../v21_patch.py
-
-      - name: Apply v0.22 safe volume PTT
-        working-directory: melehat_build
-        run: python3 ../v22_patch.py
+        run: python3 ../v23_patch.py
 
       - uses: actions/setup-java@v4
         with:
@@ -84,14 +65,14 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.22-VOLUME-PTT.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.22-VOLUME-PTT.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.22-VOLUME-PTT.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
 
       - name: Install APK on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -100,9 +81,9 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          script: adb install -r MELEHAT-TELSIZ-v0.22-VOLUME-PTT.apk
+          script: adb install -r MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.22-VOLUME-PTT
-          path: MELEHAT-TELSIZ-v0.22-VOLUME-PTT.apk
+          name: MELEHAT-TELSIZ-v0.23-VOLUME-PTT
+          path: MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
