@@ -47,19 +47,13 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v16_patch.py
 
-      - name: Inspect auth session sources
-        working-directory: melehat_build
-        run: |
-          echo "===SESSION_STORE_BEGIN==="
-          cat app/src/main/java/com/saomi/telsiz/data/SessionStore.kt
-          echo "===SESSION_STORE_END==="
-          echo "===BACKEND_API_BEGIN==="
-          cat app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
-          echo "===BACKEND_API_END==="
-
       - name: Apply v0.23 clean safe volume PTT
         working-directory: melehat_build
         run: python3 ../v23_patch.py
+
+      - name: Apply v0.23 auth refresh
+        working-directory: melehat_build
+        run: python3 ../v23_auth_refresh_patch.py
 
       - uses: actions/setup-java@v4
         with:
@@ -84,16 +78,20 @@ jobs:
           "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
           "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
 
+      - name: Upload APK artifact before emulator
+        uses: actions/upload-artifact@v4
+        with:
+          name: MELEHAT-TELSIZ-v0.23-VOLUME-PTT
+          path: melehat_build/MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+          if-no-files-found: error
+
       - name: Install APK on Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: 35
           arch: x86_64
           profile: pixel_6
           disable-animations: true
           script: adb install -r MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: MELEHAT-TELSIZ-v0.23-VOLUME-PTT
-          path: MELEHAT-TELSIZ-v0.23-VOLUME-PTT.apk
+
