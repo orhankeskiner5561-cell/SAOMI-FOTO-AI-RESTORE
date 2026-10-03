@@ -55,7 +55,11 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v27_updater_patch.py
 
-      - name: Apply v0.28 external Volume+ PTT test\n        working-directory: melehat_build\n        run: python3 ../v28_external_ptt_patch.py\n\n      - uses: actions/setup-java@v4
+      - name: Apply v0.28 external Volume+ PTT test
+        working-directory: melehat_build
+        run: python3 ../v28_external_ptt_patch.py
+
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
