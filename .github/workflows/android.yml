@@ -47,6 +47,13 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v16_patch.py
 
+      - name: Dump v0.16 service source
+        working-directory: melehat_build
+        run: |
+          echo "===PTT_SERVICE_BEGIN==="
+          cat app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          echo "===PTT_SERVICE_END==="
+
       - name: Apply v0.17 global Volume-Up PTT
         working-directory: melehat_build
         run: python3 ../v17_patch.py
