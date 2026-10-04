@@ -55,7 +55,7 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v27_updater_patch.py
 
-      - name: Apply v0.32 global Volume+ PTT
+      - name: Apply v0.28.1 accessibility PTT on v0.27 base
         working-directory: melehat_build
         run: python3 ../v32_global_ptt_patch.py
 
@@ -73,25 +73,25 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-v0.32-GLOBAL-PTT
-          path: MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk
+          name: MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY
+          path: MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk
           if-no-files-found: error
 
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$AAPT" dump badging MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk | head -n 5
-          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-v0.32-GLOBAL-PTT.apk
+          "$AAPT" dump badging MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-v0.28.1-V27-BASE-ACCESSIBILITY.apk
