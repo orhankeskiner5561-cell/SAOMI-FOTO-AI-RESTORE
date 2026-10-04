@@ -149,10 +149,10 @@ for line in extra:
         pos=u.find("\n",u.find("package "))
         u=u[:pos+1]+line+"\n"+u[pos+1:]
 
-u=u.replace("UpdateChecker()\n                Text(\"v0.27 • PTT + Otomatik Güncelleme\"", "AccessibilitySetupGate()\n                UpdateChecker()\n                Text(\"v0.32 • Global Ses+ Mandal\"")
-u=u.replace("v0.31 TEST • Global Ses+ Mandal", "v0.32 • Global Ses+ Mandal")
-u=u.replace("MELEHAT TELSİZ v0.26", "MELEHAT TELSİZ v0.32")
-u=u.replace("MELEHAT TELSİZ v0.31 TEST", "MELEHAT TELSİZ v0.32")
+u=u.replace("UpdateChecker()\n                Text(\"v0.27 • PTT + Otomatik Güncelleme\"", "AccessibilitySetupGate()\n                UpdateChecker()\n                Text(\"v0.28.1 • v0.27 TABAN • Dış Mandal\"")
+u=u.replace("v0.31 TEST • Global Ses+ Mandal", "v0.28.1 • v0.27 TABAN • Dış Mandal")
+u=u.replace("MELEHAT TELSİZ v0.26", "MELEHAT TELSİZ v0.28.1")
+u=u.replace("MELEHAT TELSİZ v0.31 TEST", "MELEHAT TELSİZ v0.28.1")
 
 u += r'''
 
@@ -216,9 +216,9 @@ private fun AccessibilitySetupGate() {
 
 b=Path("app/build.gradle.kts")
 t=b.read_text()
-t=re.sub(r'applicationId\s*=\s*"[^"]+"', 'applicationId = "com.melehat.telsiz.externalptt32"', t)
-t=re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 32', t)
-t=re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "0.32.0-global-ptt"', t)
+t=re.sub(r'applicationId\s*=\s*"[^"]+"', 'applicationId = "com.melehat.telsiz.externalptt"', t)
+t=re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 28', t)
+t=re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "0.28.1-v27-base-accessibility"', t)
 b.write_text(t)
 ui.write_text(u)
-print("v0.32 global PTT + accessibility onboarding applied")
+print("v0.28.1 built directly on v0.27 + accessibility service")
