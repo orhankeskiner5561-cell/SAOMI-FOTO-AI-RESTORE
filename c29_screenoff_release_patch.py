@@ -17,4 +17,10 @@ t=b.read_text()
 t=re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 29', t)
 t=re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "C29-screenoff-release-failsafe"', t)
 b.write_text(t)
-print("C29 applied: 800ms screen-off release failsafe")
+# Repair malformed literal \\n sequences produced when strings.xml is created from scratch.
+strings=Path("app/src/main/res/values/strings.xml")
+if strings.exists():
+    x=strings.read_text()
+    x=x.replace("\\\\n", "\\n")
+    strings.write_text(x)
+print("C29 applied: 800ms screen-off release failsafe + strings.xml repair")
