@@ -59,6 +59,13 @@ jobs:
         working-directory: melehat_build
         run: python3 ../c30_v27_clean_ptt_patch.py
 
+      - name: Make C31 separately installable
+        working-directory: melehat_build
+        run: |
+          sed -i 's/applicationId = "com.melehat.telsiz.v27"/applicationId = "com.melehat.telsiz.c31"/' app/build.gradle.kts
+          sed -i 's/versionCode = 30/versionCode = 31/' app/build.gradle.kts
+          sed -i 's/versionName = "C30-v27-clean-base"/versionName = "C31-v27-safe-install"/' app/build.gradle.kts
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -73,7 +80,7 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-C30-V27-CLEAN-PTT.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-C31-V27-SAFE-INSTALL.apk
 
       - name: Verify APK signature and alignment
         run: |
