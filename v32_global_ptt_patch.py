@@ -109,6 +109,9 @@ xml.mkdir(parents=True, exist_ok=True)
 ''')
 
 sp=Path("app/src/main/res/values/strings.xml")
+sp.parent.mkdir(parents=True, exist_ok=True)
+if not sp.exists():
+    sp.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n</resources>\\n')
 s=sp.read_text()
 if "volume_ptt_accessibility_desc" not in s:
     s=s.replace("</resources>", '    <string name="volume_ptt_accessibility_desc">Ses + tuşunu MELEHAT bas-konuş mandalı olarak kullanır.</string>\n</resources>')
