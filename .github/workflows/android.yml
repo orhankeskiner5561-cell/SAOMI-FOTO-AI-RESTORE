@@ -59,12 +59,12 @@ jobs:
         working-directory: melehat_build
         run: python3 ../c30_v27_clean_ptt_patch.py
 
-      - name: Make C32 install-safe package
+      - name: Make C33 unique install-test package
         working-directory: melehat_build
         run: |
-          sed -i 's/applicationId = "com.melehat.telsiz.v27"/applicationId = "com.melehat.telsiz.c32"/' app/build.gradle.kts
-          sed -i 's/versionCode = 30/versionCode = 32/' app/build.gradle.kts
-          sed -i 's/versionName = "C30-v27-clean-base"/versionName = "C32-v27-install-safe"/' app/build.gradle.kts
+          sed -i 's/applicationId = "com.melehat.telsiz.v27"/applicationId = "com.melehat.c33test"/' app/build.gradle.kts
+          sed -i 's/versionCode = 30/versionCode = 33/' app/build.gradle.kts
+          sed -i 's/versionName = "C30-v27-clean-base"/versionName = "C33-install-test"/' app/build.gradle.kts
 
       - name: Android 15-16 install compatibility
         working-directory: melehat_build
@@ -87,7 +87,7 @@ jobs:
         run: gradle assembleDebug --stacktrace
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-C32-V27-INSTALL-SAFE.apk
+        run: cp melehat_build/app/build/outputs/apk/debug/app-debug.apk MELEHAT-TELSIZ-C33-INSTALL-TEST.apk
 
       - name: Verify APK signature and alignment
         run: |
