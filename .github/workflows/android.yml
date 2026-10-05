@@ -122,4 +122,6 @@ jobs:
           profile: pixel_6
           script: |
             adb install -r MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
-            adb shell pm path com.melehat.telsiz.c36
+            PKG=$(aapt dump badging MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk | sed -n "s/package: name='\\([^']*\\)'.*/\\1/p")
+            echo "Installed package: $PKG"
+            adb shell pm path "$PKG"
