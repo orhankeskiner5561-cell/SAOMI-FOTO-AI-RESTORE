@@ -105,6 +105,17 @@ jobs:
           name: C55-SOURCE-SNAPSHOT
           path: c55-source.zip
 
+      - name: C56 audio speaker UI source snapshot
+        run: |
+          cd melehat_build
+          grep -R -n "class LiveKitPttClient\|AudioTrack\|RemoteTrack\|setTransmitting\|participant\|speaker" app/src/main/java > ../c56-audio-map.txt || true
+
+      - name: Upload C56 audio map
+        uses: actions/upload-artifact@v4
+        with:
+          name: C56-AUDIO-MAP
+          path: c56-audio-map.txt
+
       - name: Build APK
         working-directory: melehat_build
         run: gradle assembleRelease --stacktrace
