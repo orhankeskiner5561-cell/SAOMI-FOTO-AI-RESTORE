@@ -55,16 +55,7 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v27_updater_patch.py
 
-      - name: Apply C37 PTT rebuild on clean v0.27
-        working-directory: melehat_build
-        run: python3 ../c37_v27_normal_install_patch.py
 
-      - name: Android 15-16 install compatibility
-        working-directory: melehat_build
-        run: |
-          cat >> gradle.properties <<'EOF'
-          android.useAndroidX=true
-          EOF
 
       - uses: actions/setup-java@v4
         with:
@@ -79,41 +70,41 @@ jobs:
         working-directory: melehat_build
         run: gradle assembleRelease --stacktrace
 
-      - name: Sign C37 release APK
+      - name: Sign C39 release APK
         working-directory: melehat_build
         run: |
           KEYTOOL="$JAVA_HOME/bin/keytool"
-          "$KEYTOOL" -genkeypair -v -keystore c37-release.jks -storepass melehat37 -keypass melehat37 -alias melehat -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Melehat Telsiz, OU=Android, O=Melehat, L=Samsun, C=TR"
+          "$KEYTOOL" -genkeypair -v -keystore c39-release.jks -storepass melehat39 -keypass melehat39 -alias melehat -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Melehat Telsiz, OU=Android, O=Melehat, L=Samsun, C=TR"
           UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C37-aligned.apk
-          "$APKSIGNER" sign --ks c37-release.jks --ks-pass pass:melehat37 --key-pass pass:melehat37 --out app/build/outputs/apk/release/C37-release.apk app/build/outputs/apk/release/C37-aligned.apk
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C39-aligned.apk
+          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C39-release.apk app/build/outputs/apk/release/C39-aligned.apk
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/release/C37-release.apk MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
+        run: cp melehat_build/app/build/outputs/apk/release/C39-release.apk MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL
-          path: MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
+          name: MELEHAT-TELSIZ-C39-V27-EXACT-COPY
+          path: MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk
           if-no-files-found: error
 
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$AAPT" dump badging MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk | head -n 5
-          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C37-V27-NORMAL-INSTALL.apk
+          "$AAPT" dump badging MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C39-V27-EXACT-COPY.apk
 
 
-      - name: C37 verification complete
-        run: echo "C37 APK signature, alignment and package checks passed."
+      - name: C39 verification complete
+        run: echo "C39 exact v0.27 copy checks passed."
