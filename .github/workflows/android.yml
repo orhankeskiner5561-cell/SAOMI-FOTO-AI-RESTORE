@@ -57,13 +57,9 @@ jobs:
 
 
 
-      - name: Apply C41 empty service
+      - name: Apply C42 empty service
         working-directory: melehat_build
-        run: python3 ../c40_empty_accessibility_patch.py
-
-      - name: Make C41 independent install package
-        working-directory: melehat_build
-        run: python3 ../c41_unique_package_patch.py
+        run: python3 ../c42_class_only_patch.py
 
       - uses: actions/setup-java@v4
         with:
@@ -78,7 +74,7 @@ jobs:
         working-directory: melehat_build
         run: gradle assembleRelease --stacktrace
 
-      - name: Sign C41 release APK
+      - name: Sign C42 release APK
         working-directory: melehat_build
         run: |
           KEYTOOL="$JAVA_HOME/bin/keytool"
@@ -86,33 +82,33 @@ jobs:
           UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C41-aligned.apk
-          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C41-release.apk app/build/outputs/apk/release/C41-aligned.apk
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C42-aligned.apk
+          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C42-release.apk app/build/outputs/apk/release/C42-aligned.apk
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/release/C41-release.apk MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk
+        run: cp melehat_build/app/build/outputs/apk/release/C42-release.apk MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT
-          path: MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk
+          name: MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY
+          path: MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk
           if-no-files-found: error
 
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$AAPT" dump badging MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk | head -n 5
-          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C41-ACCESSIBILITY-INDEPENDENT.apk
+          "$AAPT" dump badging MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C42-ACCESSIBILITY-CLASS-ONLY.apk
 
 
-      - name: C41 verification complete
-        run: echo "C41 exact v0.27 copy checks passed."
+      - name: C42 verification complete
+        run: echo "C42 exact v0.27 copy checks passed."
