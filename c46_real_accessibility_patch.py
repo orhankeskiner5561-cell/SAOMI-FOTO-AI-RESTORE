@@ -19,10 +19,13 @@ new='''        <service
 '''
 if old not in s: raise SystemExit("C45 minimal service block not found")
 m.write_text(s.replace(old,new))
+v=Path("app/src/main/res/values"); v.mkdir(parents=True,exist_ok=True)
+st=v/"c46_strings.xml"
+st.write_text('''<?xml version="1.0" encoding="utf-8"?><resources><string name="c46_accessibility_description">MELEHAT TELSIZ erisilebilirlik hizmeti</string></resources>''')
 x=Path("app/src/main/res/xml"); x.mkdir(parents=True,exist_ok=True)
 (x/"c46_accessibility_service_config.xml").write_text('''<?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:description="@string/app_name"
+    android:description="@string/c46_accessibility_description"
     android:accessibilityEventTypes="typeAllMask"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:notificationTimeout="100"
