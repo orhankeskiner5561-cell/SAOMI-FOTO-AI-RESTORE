@@ -57,21 +57,25 @@ jobs:
 
 
 
-      - name: Apply C52 empty service
+      - name: Apply C53 empty service
         working-directory: melehat_build
         run: python3 ../c42_class_only_patch.py
 
-      - name: C52 unique package isolation
+      - name: C53 unique package isolation
         working-directory: melehat_build
         run: python3 ../c45_unique_package_patch.py
 
-      - name: C52 version display and fresh package
+      - name: C53 version display and fresh package
         working-directory: melehat_build
         run: python3 ../c50_version_display_patch.py
 
-      - name: C52 real radio state
+      - name: C53 real radio state
         working-directory: melehat_build
         run: python3 ../c52_real_radio_state_patch.py
+
+      - name: C53 members and presence
+        working-directory: melehat_build
+        run: python3 ../c53_members_presence_patch.py
 
       - uses: actions/setup-java@v4
         with:
@@ -86,7 +90,7 @@ jobs:
         working-directory: melehat_build
         run: gradle assembleRelease --stacktrace
 
-      - name: Sign C52 release APK
+      - name: Sign C53 release APK
         working-directory: melehat_build
         run: |
           KEYTOOL="$JAVA_HOME/bin/keytool"
@@ -94,33 +98,33 @@ jobs:
           UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C52-aligned.apk
-          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C52-release.apk app/build/outputs/apk/release/C52-aligned.apk
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C53-aligned.apk
+          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C53-release.apk app/build/outputs/apk/release/C53-aligned.apk
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/release/C52-release.apk MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk
+        run: cp melehat_build/app/build/outputs/apk/release/C53-release.apk MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-C52-REAL-RADIO-STATE
-          path: MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk
+          name: MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE
+          path: MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk
           if-no-files-found: error
 
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$AAPT" dump badging MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk | head -n 5
-          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C52-REAL-RADIO-STATE.apk
+          "$AAPT" dump badging MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C53-MEMBERS-PRESENCE.apk
 
 
-      - name: C52 verification complete
-        run: echo "C52 exact v0.27 copy checks passed."
+      - name: C53 verification complete
+        run: echo "C53 exact v0.27 copy checks passed."
