@@ -90,10 +90,6 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: C55 real UI and presence
-        working-directory: melehat_build
-        run: python3 ../c55_real_ui_presence_patch.py
-
       - name: C55 source snapshot
         run: |
           cd melehat_build
