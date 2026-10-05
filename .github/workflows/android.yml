@@ -94,7 +94,7 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: C55 direct clean UI presence\n        working-directory: melehat_build\n        run: python3 ../c55_direct_clean_patch.py\n\n      - name: C55 source snapshot
+      - name: C55 source snapshot
         run: |
           cd melehat_build
           zip -qr ../c55-source.zip app/src/main/java app/src/main/AndroidManifest.xml app/build.gradle.kts
