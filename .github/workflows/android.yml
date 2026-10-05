@@ -81,6 +81,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../c54_visible_members_patch.py
 
+      - name: Apply clean C55 UI and presence
+        working-directory: melehat_build
+        run: python3 ../c55_clean_direct_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
