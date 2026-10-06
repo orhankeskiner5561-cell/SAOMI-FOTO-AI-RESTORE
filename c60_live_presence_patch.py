@@ -13,7 +13,7 @@ if "presenceWatchJob" not in s:
     s=s[:classpos+1]+'''\n    private var presenceWatchJob: kotlinx.coroutines.Job? = null\n'''+s[classpos+1:]
     s=s.replace(marker,marker+'''
         presenceWatchJob?.cancel()
-        presenceWatchJob = serviceScope.launch {
+        presenceWatchJob = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Default).launch {
             while (isActive) {
                 broadcastLiveKitPresence()
                 delay(1000)
