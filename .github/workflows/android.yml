@@ -89,6 +89,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../c56_final_ui_patch.py
 
+      - name: Apply C57 reconnect recovery
+        working-directory: melehat_build
+        run: python3 ../c57_reconnect_patch.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -132,32 +136,32 @@ jobs:
           UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C56-aligned.apk
-          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C56-release.apk app/build/outputs/apk/release/C56-aligned.apk
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/C57-aligned.apk
+          "$APKSIGNER" sign --ks c39-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/C57-release.apk app/build/outputs/apk/release/C57-aligned.apk
 
       - name: Prepare APK
-        run: cp melehat_build/app/build/outputs/apk/release/C56-release.apk MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk
+        run: cp melehat_build/app/build/outputs/apk/release/C57-release.apk MELEHAT-TELSIZ-C57-RECONNECT.apk
 
       - name: Verify APK signature and alignment
         run: |
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
-          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk
-          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ-C57-RECONNECT.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ-C57-RECONNECT.apk
 
       - name: Upload APK artifact before emulator
         uses: actions/upload-artifact@v4
         with:
-          name: MELEHAT-TELSIZ-C56-REMOTE-SPEAKER
-          path: MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk
+          name: MELEHAT-TELSIZ-C57-RECONNECT
+          path: MELEHAT-TELSIZ-C57-RECONNECT.apk
           if-no-files-found: error
 
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
-          "$AAPT" dump badging MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk | head -n 5
-          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C56-REMOTE-SPEAKER.apk
+          "$AAPT" dump badging MELEHAT-TELSIZ-C57-RECONNECT.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ-C57-RECONNECT.apk
 
 
       - name: C56 verification complete
