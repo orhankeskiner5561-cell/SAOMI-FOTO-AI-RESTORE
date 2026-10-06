@@ -17,7 +17,7 @@ import io.livekit.android.events.RoomEvent
 import io.livekit.android.room.Room
 import io.livekit.android.room.track.RemoteTrackPublication
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 
 class LiveKitPttClient(
     private val context: Context,
@@ -68,7 +68,7 @@ class LiveKitPttClient(
     private fun watchRoom(r: Room) {
         eventJob?.cancel()
         eventJob = eventScope.launch {
-            r.events.collect { event ->
+            r.events.collectLatest { event ->
                 when (event) {
                     is RoomEvent.ParticipantConnected,
                     is RoomEvent.ParticipantDisconnected,
