@@ -164,7 +164,7 @@ s=s.replace("ptt = LiveKitPttClient(applicationContext)",'''ptt = LiveKitPttClie
             broadcastLiveKitPresence(ids, names)
         }''')
 # replace old helper with overload carrying both identity and display name
-s=re.sub(r'''    private fun broadcastLiveKitPresence\(\) \{.*?\n    \}\n''',lambda _m: r'''    private fun broadcastLiveKitPresence(
+s=re.sub(r'''    private fun broadcastLiveKitPresence\(\) \{.*?\n    \}\n''',lambda _m: '''    private fun broadcastLiveKitPresence(
         ids: Set<String> = ptt.connectedRemoteIdentities(),
         names: Set<String> = ptt.connectedRemoteNames()
     ) {
