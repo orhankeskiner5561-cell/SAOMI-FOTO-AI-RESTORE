@@ -1,0 +1,64 @@
+workflows:
+  melehat-android:
+    name: MELEHAT TELSIZ Android APK
+    instance_type: linux_x2
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Prepare MELEHAT source
+        script: |
+          set -e
+          rm -rf melehat_build
+          mkdir melehat_build
+          unzip -oq melehat_v10.zip -d melehat_build
+          cd melehat_build
+          python3 ../v12_patch.py
+          cd ..
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('v14_patch.py')
+          s=p.read_text()
+          s=s.replace('\\ns = s.replace("MELEHAT TELSİZ v0.10"', '\ns = s.replace("MELEHAT TELSİZ v0.10"')
+          p.write_text(s)
+          PY
+          cd melehat_build
+          python3 ../v14_patch.py
+          python3 ../v14_fix_patch.py
+          python3 ../v15_patch.py
+          python3 ../v16_patch.py
+          python3 ../v26_clean_auth_patch.py
+          python3 ../v27_updater_patch.py
+          python3 ../c42_class_only_patch.py
+          python3 ../c45_unique_package_patch.py
+          python3 ../c50_version_display_patch.py
+          python3 ../c52_real_radio_state_patch.py
+          python3 ../c53_members_presence_patch.py
+          python3 ../c54_visible_members_patch.py
+          python3 ../c55_clean_direct_patch.py
+          python3 ../c56_final_ui_patch.py
+          python3 ../c57_reconnect_patch.py
+          python3 ../c58_livekit_reconnect_patch.py
+          python3 ../c59_legacy_presence_patch.py
+          python3 ../c60_live_presence_patch.py
+          python3 ../c61_stability_patch.py
+          python3 ../c62_receive_presence_root_fix.py
+      - name: Build release APK
+        script: |
+          set -e
+          cd melehat_build
+          chmod +x gradlew 2>/dev/null || true
+          if [ -x ./gradlew ]; then
+            ./gradlew assembleRelease --stacktrace
+          else
+            gradle assembleRelease --stacktrace
+          fi
+      - name: Prepare APK artifact
+        script: |
+          set -e
+          mkdir -p "$CM_BUILD_DIR/artifacts"
+          APK=$(find "$CM_BUILD_DIR/melehat_build/app/build/outputs/apk/release" -name "*.apk" | head -1)
+          test -n "$APK"
+          cp "$APK" "$CM_BUILD_DIR/artifacts/MELEHAT-TELSIZ-C62-CODEMAGIC.apk"
+    artifacts:
+      - artifacts/*.apk
