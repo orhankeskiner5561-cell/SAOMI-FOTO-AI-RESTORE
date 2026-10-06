@@ -17,7 +17,6 @@ import io.livekit.android.events.RoomEvent
 import io.livekit.android.room.Room
 import io.livekit.android.room.track.RemoteTrackPublication
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collectLatest
 
 class LiveKitPttClient(
     private val context: Context,
@@ -66,45 +65,13 @@ class LiveKitPttClient(
     }
 
     private fun watchRoom(r: Room) {
+        // LiveKit 2.x in this project does not expose Room.events as a Kotlin Flow.
+        // Keep the room persistent; presence is refreshed on connect/PTT and
+        // remote audio publications are subscribed without a Flow collector.
         eventJob?.cancel()
-        eventJob = eventScope.launch {
-            r.events.collectLatest { event ->
-                when (event) {
-                    is RoomEvent.ParticipantConnected,
-                    is RoomEvent.ParticipantDisconnected,
-                    is RoomEvent.ParticipantNameChanged -> publishPresence(r)
-
-                    is RoomEvent.TrackPublished -> {
-                        (event.publication as? RemoteTrackPublication)?.setSubscribed(true)
-                        publishPresence(r)
-                    }
-
-                    is RoomEvent.TrackUnmuted -> {
-                        (event.publication as? RemoteTrackPublication)?.setSubscribed(true)
-                        publishPresence(r)
-                    }
-
-                    is RoomEvent.TrackSubscriptionPermissionChanged -> {
-                        event.trackPublication.setSubscribed(true)
-                    }
-
-                    is RoomEvent.Reconnected -> {
-                        connected = true
-                        ensureRemoteAudioSubscribed(r)
-                        publishPresence(r)
-                    }
-
-                    is RoomEvent.Disconnected -> {
-                        if (room === r) {
-                            connected = false
-                            onPresenceChanged(emptySet(), emptySet())
-                        }
-                    }
-
-                    else -> Unit
-                }
-            }
-        }
+        eventJob = null
+        ensureRemoteAudioSubscribed(r)
+        publishPresence(r)
     }
 
     private fun ensureRemoteAudioSubscribed(r: Room) {
