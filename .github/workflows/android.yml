@@ -64,6 +64,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v29_cleanup.py
 
+      - name: Apply final V29 UI and presence
+        working-directory: melehat_build
+        run: python3 ../v29_final.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
