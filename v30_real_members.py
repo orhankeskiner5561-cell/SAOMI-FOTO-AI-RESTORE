@@ -4,7 +4,7 @@ import re
 p=Path("app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
 s=p.read_text()
 
-for imp in ["import okhttp3.MediaType.Companion.toMediaType","import okhttp3.RequestBody.Companion.toRequestBody","import org.json.JSONArray"]:
+for imp in ["import okhttp3.MediaType.Companion.toMediaType","import okhttp3.RequestBody.Companion.toRequestBody","import org.json.JSONArray","import com.saomi.telsiz.auth.AuthSession","import com.saomi.telsiz.BuildConfig"]:
     if imp not in s:
         pos=s.find("\n",s.find("package "))
         s=s[:pos+1]+imp+"\n"+s[pos+1:]
