@@ -60,6 +60,9 @@ jobs:
       - name: Apply V28 v0.27 audio baseline + live presence
         working-directory: melehat_build
         run: python3 ../v28_v027_audio_presence_patch.py
+      - name: Remove incompatible experimental member client
+        working-directory: melehat_build
+        run: python3 ../v29_cleanup.py
 
       - uses: actions/setup-java@v4
         with:
