@@ -72,6 +72,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v30_real_members.py
 
+      - name: Apply V31 legacy online
+        working-directory: melehat_build
+        run: python3 ../v31_legacy_online.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
