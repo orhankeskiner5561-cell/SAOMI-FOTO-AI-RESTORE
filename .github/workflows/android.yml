@@ -98,14 +98,20 @@ jobs:
 
       - name: Sign permanent release APK
         working-directory: melehat_build
+        env:
+          MELEHAT_KEYSTORE_B64: ${{ secrets.MELEHAT_KEYSTORE_B64 }}
+          MELEHAT_STORE_PASSWORD: ${{ secrets.MELEHAT_STORE_PASSWORD }}
+          MELEHAT_KEY_PASSWORD: ${{ secrets.MELEHAT_KEY_PASSWORD }}
         run: |
-          KEYTOOL="$JAVA_HOME/bin/keytool"
-          cp ../melehat-release.jks ./melehat-release.jks
+          test -n "$MELEHAT_KEYSTORE_B64" || { echo "Missing MELEHAT_KEYSTORE_B64"; exit 2; }
+          test -n "$MELEHAT_STORE_PASSWORD" || { echo "Missing MELEHAT_STORE_PASSWORD"; exit 2; }
+          test -n "$MELEHAT_KEY_PASSWORD" || { echo "Missing MELEHAT_KEY_PASSWORD"; exit 2; }
+          printf '%s' "$MELEHAT_KEYSTORE_B64" | base64 --decode > melehat-release.jks
           UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
           ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
           "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/MELEHAT-aligned.apk
-          "$APKSIGNER" sign --ks melehat-release.jks --ks-pass pass:melehat39 --key-pass pass:melehat39 --out app/build/outputs/apk/release/MELEHAT-release.apk app/build/outputs/apk/release/MELEHAT-aligned.apk
+          "$APKSIGNER" sign --ks melehat-release.jks --ks-pass env:MELEHAT_STORE_PASSWORD --key-pass env:MELEHAT_KEY_PASSWORD --out app/build/outputs/apk/release/MELEHAT-release.apk app/build/outputs/apk/release/MELEHAT-aligned.apk
 
       - name: Prepare APK
         run: cp melehat_build/app/build/outputs/apk/release/MELEHAT-release.apk MELEHAT-TELSIZ.apk
