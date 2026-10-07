@@ -65,14 +65,14 @@ class MemberStatusApi(private val refresher: SessionRefresher) {
 }
 ''')
 
-# Reuse the already-proven C55 member UI/presence patch, but leave LiveKit/PTT untouched.
-c55=Path("../c55_clean_direct_patch.py")
-if c55.exists():
-    exec(c55.read_text(), {"__name__":"__main__"})
+# Add member presence using the C53/C54 foundations only; do not run C55 UI assumptions.
+for patch_name in ["../c53_members_presence_patch.py","../c54_visible_members_patch.py"]:
+    q=Path(patch_name)
+    if q.exists():
+        exec(q.read_text(), {"__name__":"__main__"})
 
 ui=Path("app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
-u=ui.read_text()
-u=u.replace("C55", "V28").replace("v0.27", "V28")
+u=ui.read_text().replace("C54 • PTT + Otomatik Güncelleme","V28 • v0.27 Ses Altyapısı + Canlı Üyeler").replace("MELEHAT TELSİZ C54","MELEHAT TELSİZ V28")
 ui.write_text(u)
 
 b=Path("app/build.gradle.kts")
@@ -81,4 +81,4 @@ t=re.sub(r'applicationId\s*=\s*"[^"]+"','applicationId = "com.melehat.telsiz.v28
 t=re.sub(r'versionCode\s*=\s*\d+','versionCode = 28',t,count=1)
 t=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "0.28"',t,count=1)
 b.write_text(t)
-print("V28: v0.27 audio/PTT baseline preserved; live member presence added")
+print("V28 pure v0.27 audio/PTT + presence foundation applied")
