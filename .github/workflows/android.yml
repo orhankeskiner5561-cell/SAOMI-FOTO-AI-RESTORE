@@ -76,6 +76,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../v31_legacy_online.py
 
+      - name: Apply V32 radio presence
+        working-directory: melehat_build
+        run: python3 ../v32_radio_presence.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
