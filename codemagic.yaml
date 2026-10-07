@@ -42,7 +42,7 @@ workflows:
           python3 ../c59_legacy_presence_patch.py
           python3 ../c60_live_presence_patch.py
           python3 ../c61_stability_patch.py
-          python3 ../c62_receive_presence_root_fix.py
+          python3 ../c62_receive_presence_root_fix.py\n          python3 ../c63_incoming_audio_patch.py
       - name: Build release APK
         script: |
           set -e
@@ -67,23 +67,23 @@ workflows:
           test -x "$ZIPALIGN"
           test -x "$APKSIGNER"
 
-          KEYSTORE="$CM_BUILD_DIR/melehat-c62-release.jks"
+          KEYSTORE="$CM_BUILD_DIR/melehat-c63-release.jks"
           keytool -genkeypair -v \
             -keystore "$KEYSTORE" \
-            -storepass melehat62 \
-            -keypass melehat62 \
+            -storepass melehat63 \
+            -keypass melehat63 \
             -alias melehat \
             -keyalg RSA -keysize 2048 -validity 10000 \
             -dname "CN=MELEHAT TELSIZ, OU=Android, O=MELEHAT, L=Samsun, ST=Samsun, C=TR"
 
-          ALIGNED="$CM_BUILD_DIR/artifacts/MELEHAT-TELSIZ-C62-aligned.apk"
-          FINAL="$CM_BUILD_DIR/artifacts/MELEHAT-TELSIZ-C62-CODEMAGIC.apk"
+          ALIGNED="$CM_BUILD_DIR/artifacts/MELEHAT-TELSIZ-C63-aligned.apk"
+          FINAL="$CM_BUILD_DIR/artifacts/MELEHAT-TELSIZ-C63-CODEMAGIC.apk"
           "$ZIPALIGN" -f -p 4 "$APK" "$ALIGNED"
           "$APKSIGNER" sign \
             --ks "$KEYSTORE" \
             --ks-key-alias melehat \
-            --ks-pass pass:melehat62 \
-            --key-pass pass:melehat62 \
+            --ks-pass pass:melehat63 \
+            --key-pass pass:melehat63 \
             --out "$FINAL" "$ALIGNED"
           "$APKSIGNER" verify --verbose "$FINAL"
           rm -f "$ALIGNED"
