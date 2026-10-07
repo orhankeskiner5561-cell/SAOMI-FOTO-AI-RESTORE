@@ -42,7 +42,8 @@ workflows:
           python3 ../c59_legacy_presence_patch.py
           python3 ../c60_live_presence_patch.py
           python3 ../c61_stability_patch.py
-          python3 ../c62_receive_presence_root_fix.py\n          python3 ../c63_incoming_audio_patch.py
+          python3 ../c62_receive_presence_root_fix.py
+          python3 ../c63_incoming_audio_patch.py
       - name: Build release APK
         script: |
           set -e
