@@ -33,7 +33,7 @@ for line in imports:
 needle='var showMembers by remember { mutableStateOf(false) }'
 if needle in s and 'updateAvailable by remember' not in s:
     s=s.replace(needle, needle+'''
-    var updateAvailable by remember { mutableStateOf(false) }
+    var updateAvailable by remember { mutableStateOf(false) }\n    var updateCheckDone by remember { mutableStateOf(false) }\n    var updateCheckFailed by remember { mutableStateOf(false) }
     var updateVersion by remember { mutableStateOf("") }
     var updateUrl by remember { mutableStateOf("") }
     var updateDownloading by remember { mutableStateOf(false) }
@@ -71,7 +71,11 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
             updateVersion = info.first
             updateUrl = info.second
             updateAvailable = true
+            updateCheckFailed = false
+        } else {
+            updateCheckFailed = true
         }
+        updateCheckDone = true
     }
 '''
     s=s.replace(anchor,anchor+updater,1)
@@ -142,6 +146,11 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                                 }.start()
                             }) { Text("GÜNCELLE") }
                         }
+                    } else if (!updateCheckDone) {
+                        Text("🟠 GÜNCELLEME KONTROL EDİLİYOR…", fontWeight = FontWeight.Bold)
+                    } else if (updateCheckFailed) {
+                        Text("⚠️ GÜNCELLEME KONTROLÜ BAŞARISIZ", fontWeight = FontWeight.Bold)
+                        Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
                         Text("MELEHAT TELSİZ v1.2.9")
