@@ -230,6 +230,14 @@ s = s.replace('Text("🔴 YENİ", fontWeight = FontWeight.Bold, color = Color(0x
 s = s.replace('Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 10.sp)', 'Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1)', 1)
 s = s.replace('code > 143', 'code > 144', 1)
 s = s.replace('Text("v1.3.13", fontSize = 11.sp)', 'Text("v1.3.14", fontSize = 11.sp)', 1)
+# Reference layout: compact purple controls centred vertically on the green PTT.
+s = s.replace('horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {', 'horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {', 1)
+# Keep the update state and installation action but use a concise side-card label.
+s = s.replace('Text("YÜKLE", fontSize = 11.sp, maxLines = 1)', 'Text("GÜNCELLE", fontSize = 11.sp, maxLines = 1)', 1)
+s = s.replace('Text("ÜYELER", fontSize = 12.sp, maxLines = 1)', 'Text("ÜYELER", fontSize = 11.sp, maxLines = 1)', 1)
+s = s.replace('Modifier.fillMaxWidth().heightIn(min = 104.dp)', 'Modifier.fillMaxWidth().heightIn(min = 74.dp)')
+s = s.replace('code > 144', 'code > 145', 1)
+s = s.replace('Text("v1.3.14", fontSize = 11.sp)', 'Text("v1.3.15", fontSize = 11.sp)', 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -249,8 +257,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 144',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.14"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 145',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.15"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
