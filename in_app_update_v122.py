@@ -10,6 +10,10 @@ imports=[
 "import android.net.Uri",
 "import android.app.DownloadManager",
 "import android.content.Context",
+"import android.os.Build",
+"import android.provider.Settings",
+"import android.os.Handler",
+"import android.os.Looper",
 "import androidx.core.content.FileProvider",
 "import java.io.File",
 "import androidx.compose.ui.graphics.Color",
@@ -33,7 +37,7 @@ if needle in s and 'updateAvailable by remember' not in s:
     var updateVersion by remember { mutableStateOf("") }
     var updateUrl by remember { mutableStateOf("") }
     var updateDownloading by remember { mutableStateOf(false) }
-    var updateProgress by remember { mutableStateOf(0) }
+    var updateProgress by remember { mutableStateOf(0) }\n    var pendingInstallPath by remember { mutableStateOf("") }
     val updateContext = LocalContext.current''',1)
 
 # Check GitHub-hosted update manifest without touching radio/audio.
@@ -59,7 +63,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
                     val code = o.optInt("versionCode", 0)
                     val name = o.optString("versionName", "")
                     val url = o.optString("apkUrl", "")
-                    if (code > 128 && url.startsWith("https://")) Pair(name, url) else null
+                    if (code > 129 && url.startsWith("https://")) Pair(name, url) else null
                 }
             }.getOrNull()
         }
@@ -112,16 +116,24 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                                             val status = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
                                             val total = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
                                             val got = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
-                                            if (total > 0) updateProgress = ((got * 100) / total).toInt()
+                                            if (total > 0) Handler(Looper.getMainLooper()).post { updateProgress = ((got * 100) / total).toInt() }
                                             if (status == DownloadManager.STATUS_SUCCESSFUL) {
                                                 done = true
                                                 val apk = File(updateContext.getExternalFilesDir("updates"), fileName)
-                                                val uri = FileProvider.getUriForFile(updateContext, updateContext.packageName + ".fileprovider", apk)
-                                                val install = Intent(Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(uri, "application/vnd.android.package-archive")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                Handler(Looper.getMainLooper()).post {
+                                                    pendingInstallPath = apk.absolutePath
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !updateContext.packageManager.canRequestPackageInstalls()) {
+                                                        val permissionIntent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + updateContext.packageName))
+                                                        updateContext.startActivity(permissionIntent)
+                                                    } else {
+                                                        val uri = FileProvider.getUriForFile(updateContext, updateContext.packageName + ".fileprovider", apk)
+                                                        val install = Intent(Intent.ACTION_VIEW).apply {
+                                                            setDataAndType(uri, "application/vnd.android.package-archive")
+                                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        }
+                                                        updateContext.startActivity(install)
+                                                    }
                                                 }
-                                                updateContext.startActivity(install)
                                             } else if (status == DownloadManager.STATUS_FAILED) done = true
                                         }
                                         c.close()
@@ -132,7 +144,7 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         }
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.2.8")
+                        Text("MELEHAT TELSİZ v1.2.9")
                     }
                 }
             }
@@ -144,8 +156,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 128',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.8"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 129',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.9"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
