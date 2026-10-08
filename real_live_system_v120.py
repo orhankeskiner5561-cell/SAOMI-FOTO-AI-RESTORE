@@ -320,11 +320,25 @@ replacement=r'''            if (liveNotice.isNotBlank()) {
                     }
                 )
             }'''
-s2,n=re.subn(pattern,replacement,s,count=1)
-if n == 1:
-    s=s2
-else:
-    s=s
+# Directly replace the known main-screen Surface block, not its text contents.
+start_marker = '''            Surface(
+                Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFF2F2F7)
+            ) {'''
+start = s.find(start_marker)
+if start < 0:
+    raise SystemExit("Main screen legacy Surface not found")
+end_marker = '''            }
+        }
+    }
+}
+
+private fun normalizePhone'''
+end = s.find(end_marker, start)
+if end < 0:
+    raise SystemExit("Main screen Surface end not found")
+s = s[:start] + replacement + '\n' + s[end+len('            }'):]
 s=s.replace("1.1 • CANLI KANAL 1 • v0.27 SES/PTT","1.2 • GERÇEK CANLI KANAL 1 • v0.27 SES/PTT",1)
 ui.write_text(s)
 
