@@ -69,9 +69,6 @@ jobs:
         working-directory: melehat_build
         run: python3 ../real_live_system_v120.py
 
-      - name: Apply universal Android compatibility
-        working-directory: melehat_build
-        run: python3 ../redmi_note12pro_compat.py
 
       - name: Apply in-app updater UI
         working-directory: melehat_build
