@@ -69,6 +69,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../real_live_system_v120.py
 
+      - name: Apply Redmi Note 12 Pro compatibility
+        working-directory: melehat_build
+        run: python3 ../redmi_note12pro_compat.py
+
       - name: Export generated AppRoot for direct UI source
         if: always()
         uses: actions/upload-artifact@v4
