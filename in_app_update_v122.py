@@ -8,6 +8,10 @@ s=p.read_text()
 imports=[
 "import android.content.Intent",
 "import android.net.Uri",
+"import android.app.DownloadManager",
+"import android.content.Context",
+"import androidx.core.content.FileProvider",
+"import java.io.File",
 "import androidx.compose.ui.graphics.Color",
 "import androidx.compose.ui.platform.LocalContext",
 "import kotlinx.coroutines.Dispatchers",
@@ -28,6 +32,8 @@ if needle in s and 'updateAvailable by remember' not in s:
     var updateAvailable by remember { mutableStateOf(false) }
     var updateVersion by remember { mutableStateOf("") }
     var updateUrl by remember { mutableStateOf("") }
+    var updateDownloading by remember { mutableStateOf(false) }
+    var updateProgress by remember { mutableStateOf(0) }
     val updateContext = LocalContext.current''',1)
 
 # Check GitHub-hosted update manifest without touching radio/audio.
@@ -53,7 +59,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
                     val code = o.optInt("versionCode", 0)
                     val name = o.optString("versionName", "")
                     val url = o.optString("apkUrl", "")
-                    if (code > 127 && url.startsWith("https://")) Pair(name, url) else null
+                    if (code > 128 && url.startsWith("https://")) Pair(name, url) else null
                 }
             }.getOrNull()
         }
@@ -85,12 +91,48 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                     if (updateAvailable) {
                         Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020))
                         Text("MELEHAT TELSİZ " + updateVersion)
-                        Button(onClick = {
-                            updateContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl)))
-                        }) { Text("GÜNCELLE") }
+                        if (updateDownloading) {
+                            Text("APK indiriliyor… %" + updateProgress)
+                        } else {
+                            Button(onClick = {
+                                val dm = updateContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                                val fileName = "MELEHAT-TELSIZ-" + updateVersion + ".apk"
+                                val request = DownloadManager.Request(Uri.parse(updateUrl))
+                                    .setTitle("MELEHAT TELSİZ " + updateVersion)
+                                    .setDescription("Güncelleme indiriliyor")
+                                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                                    .setDestinationInExternalFilesDir(updateContext, "updates", fileName)
+                                val id = dm.enqueue(request)
+                                updateDownloading = true
+                                Thread {
+                                    var done = false
+                                    while (!done) {
+                                        val c = dm.query(DownloadManager.Query().setFilterById(id))
+                                        if (c.moveToFirst()) {
+                                            val status = c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                                            val total = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES))
+                                            val got = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR))
+                                            if (total > 0) updateProgress = ((got * 100) / total).toInt()
+                                            if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                                                done = true
+                                                val apk = File(updateContext.getExternalFilesDir("updates"), fileName)
+                                                val uri = FileProvider.getUriForFile(updateContext, updateContext.packageName + ".fileprovider", apk)
+                                                val install = Intent(Intent.ACTION_VIEW).apply {
+                                                    setDataAndType(uri, "application/vnd.android.package-archive")
+                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
+                                                updateContext.startActivity(install)
+                                            } else if (status == DownloadManager.STATUS_FAILED) done = true
+                                        }
+                                        c.close()
+                                        if (!done) Thread.sleep(500)
+                                    }
+                                }.start()
+                            }) { Text("GÜNCELLE") }
+                        }
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.2.7")
+                        Text("MELEHAT TELSİZ v1.2.8")
                     }
                 }
             }
@@ -102,9 +144,9 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 127',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.7"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 128',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.8"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
-print("IN_APP_UPDATE_UI_127_OK")
+print("IN_APP_UPDATE_UI_128_OK")
