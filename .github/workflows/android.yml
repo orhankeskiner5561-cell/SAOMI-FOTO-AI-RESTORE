@@ -65,6 +65,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../live_channel_core.py
 
+      - name: Apply real LiveKit presence and member UI
+        working-directory: melehat_build
+        run: python3 ../real_live_system_v120.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
