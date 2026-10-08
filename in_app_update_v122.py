@@ -177,6 +177,42 @@ if 'YENİ GÜNCELLEME VAR' not in s:
         raise SystemExit("member button block missing")
     members_above_update = member_block + card
     s=s.replace(member_block, members_above_update, 1)
+# Arrange updater LEFT and members RIGHT of the central PTT control.
+# Only restructure Compose UI; preserve existing callbacks and updater logic.
+member_start = s.index('            Button(\n                onClick = { showMembers = true },')
+card_start = s.index('            Surface(\n                Modifier.weight(1f).heightIn(min = 64.dp),', member_start)
+card_end = s.index('\n            }', card_start) + len('\n            }')
+member_ui = s[member_start:card_start]
+card_ui = s[card_start:card_end]
+s = s[:member_start] + s[card_end:]
+ptt_anchor = '            Box(Modifier.size(270.dp), contentAlignment = Alignment.Center)'
+if ptt_anchor not in s:
+    # Old UI uses compact Box syntax; check both variants.
+    ptt_anchor = '            Box(Modifier.size(270.dp),contentAlignment=Alignment.Center)'
+if ptt_anchor not in s:
+    raise SystemExit('PTT anchor missing: refusing to publish')
+# Keep existing hold-to-talk callbacks, shrink only outer ring to fit both controls.
+s = s.replace(ptt_anchor, '''            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+''' + card_ui.replace('Modifier.weight(1f).heightIn(min = 64.dp)', 'Modifier.fillMaxWidth().heightIn(min = 64.dp)') + '''
+                }
+                Box(Modifier.size(190.dp), contentAlignment = Alignment.Center)''', 1)
+# PTT Box contains a nested Surface; locate the following member dialog (not a sibling button).
+dialog_anchor = '            if (showMembers) {'
+if dialog_anchor not in s:
+    raise SystemExit('Member dialog missing')
+s = s.replace(dialog_anchor, '''                Column(Modifier.weight(1f)) {
+''' + member_ui.replace('Modifier.fillMaxWidth()', 'Modifier.fillMaxWidth()') + '''
+                }
+            }
+''' + dialog_anchor, 1)
+# Compact labels for narrow side controls while retaining the existing actions.
+s = s.replace('Text("ÜYELER: ${directory.size}")', 'Text("ÜYELER: ${directory.size}", fontSize = 10.sp)', 1)
+s = s.replace('Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 13.sp)', 'Text("🔴 YENİ", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 10.sp)', 1)
+s = s.replace('Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 13.sp)', 'Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 10.sp)', 1)
+s = s.replace('Text("MELEHAT TELSİZ v1.3.11", fontSize = 12.sp)', 'Text("v1.3.12", fontSize = 10.sp)', 1)
+s = s.replace('code > 141', 'code > 142', 1)
+
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -196,7 +232,7 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 141',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 142',w,count=1)
 w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.11"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
