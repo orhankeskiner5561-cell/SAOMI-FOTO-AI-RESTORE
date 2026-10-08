@@ -86,7 +86,7 @@ class LiveKitPttClient(private val context: Context) {
                         LiveChannelUiState.notice("$name Kanal 1'e katıldı")
                     }
                     is RoomEvent.ParticipantDisconnected -> {
-                        val name = event.participant.name.ifBlank { identityText(event.participant.identity) }
+                        val name = event.participant.name?.ifBlank { identityText(event.participant.identity) } ?: identityText(event.participant.identity)
                         publishMembers(r)
                         LiveChannelUiState.notice("$name Kanal 1'den ayrıldı")
                     }
