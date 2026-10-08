@@ -61,6 +61,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../permanent_release_patch.py
 
+      - name: Apply persistent LiveKit channel core
+        working-directory: melehat_build
+        run: python3 ../live_channel_core.py
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
