@@ -130,7 +130,7 @@ jobs:
       - name: V28 source snapshot
         run: |
           cd melehat_build
-          zip -qr ../c56-source.zip app/src/main/java app/src/main/AndroidManifest.xml app/build.gradle.kts
+          zip -qr ../c56-source.zip app/src/main/java app/src/main/res app/src/main/AndroidManifest.xml app/build.gradle.kts
 
       - name: Upload V28 source snapshot
         uses: actions/upload-artifact@v4
@@ -191,7 +191,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.2.8 >/dev/null 2>&1 && gh release delete v1.2.8 --yes --cleanup-tag || true
+          gh release view v1.2.8 >/dev/null 2>&1 && { echo "Release v1.2.8 already exists; refusing to replace a distributed APK"; exit 1; } || true
           gh release create v1.2.8 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.2.8" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.2.5"
 
 
