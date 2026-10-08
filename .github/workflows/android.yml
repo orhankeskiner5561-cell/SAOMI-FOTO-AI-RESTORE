@@ -69,6 +69,13 @@ jobs:
         working-directory: melehat_build
         run: python3 ../real_live_system_v120.py
 
+      - name: Export generated AppRoot for direct UI source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GENERATED-APPROOT
+          path: melehat_build/app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
