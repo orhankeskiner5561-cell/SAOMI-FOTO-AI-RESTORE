@@ -191,8 +191,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.2.8 >/dev/null 2>&1 && { echo "Release v1.2.8 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.2.8 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.2.8" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.2.5"
+          gh release view v1.2.9 >/dev/null 2>&1 && { echo "Release v1.2.9 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.2.9 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.2.9" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.2.9"
 
 
       - name: Verify APK package and signature
