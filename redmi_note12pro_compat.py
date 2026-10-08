@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
 
-# Redmi Note 12 Pro / MIUI-HyperOS compatibility layer.
+# Universal Android compatibility layer (Samsung, Xiaomi/Redmi/POCO, Oppo/Realme, Vivo, Honor, Motorola, Pixel and other standard Android devices).
 # Do not alter v0.27 LiveKit/PTT/audio code; only Android lifecycle/manifest compatibility.
 manifest=Path("app/src/main/AndroidManifest.xml")
 s=manifest.read_text()
@@ -35,4 +35,4 @@ if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("Permanent package changed")
 g.write_text(w)
 
-print("REDMI_NOTE12PRO_COMPAT_OK")
+print("UNIVERSAL_ANDROID_COMPAT_OK")
