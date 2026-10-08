@@ -69,7 +69,7 @@ class LiveKitPttClient(private val context: Context) {
         }
         r.remoteParticipants.forEach { (identity, participant) ->
             val id = identityText(identity)
-            val name = participant.name.ifBlank { id }
+            val name = participant.name?.ifBlank { id } ?: id
             list += LiveMember(id, name)
         }
         LiveChannelUiState.members(list)
@@ -82,7 +82,7 @@ class LiveKitPttClient(private val context: Context) {
                 when (event) {
                     is RoomEvent.ParticipantConnected -> {
                         publishMembers(r)
-                        val name = event.participant.name.ifBlank { identityText(event.participant.identity) }
+                        val name = event.participant.name?.ifBlank { identityText(event.participant.identity) } ?: identityText(event.participant.identity)
                         LiveChannelUiState.notice("$name Kanal 1'e katıldı")
                     }
                     is RoomEvent.ParticipantDisconnected -> {
