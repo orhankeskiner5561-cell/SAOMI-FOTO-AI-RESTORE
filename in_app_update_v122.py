@@ -165,7 +165,14 @@ if 'YENİ GÜNCELLEME VAR' not in s:
             }
 
 '''
-    # Keep member list visible on all phone heights: member button first, update card below.\n    s=s.replace(member,member,1)\n    member_end='''            ) {\n                Text("ÜYELER: ${directory.size}")\n            }\n'''\n    if member_end not in s:\n        raise SystemExit("member button end anchor missing")\n    s=s.replace(member_end,member_end+"\\n"+card,1)
+    # Keep member list visible: member button first, update card immediately below.
+    member_end='''            ) {
+                Text("ÜYELER: ${directory.size}")
+            }
+'''
+    if member_end not in s:
+        raise SystemExit("member button end anchor missing")
+    s=s.replace(member_end, member_end+"\n"+card, 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
