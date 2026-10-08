@@ -321,7 +321,10 @@ replacement=r'''            if (liveNotice.isNotBlank()) {
                 )
             }'''
 s2,n=re.subn(pattern,replacement,s,count=1)
-if n == 1:\n    s=s2\nelse:\n    s=s\n
+if n == 1:
+    s=s2
+else:
+    s=s
 s=s.replace("1.1 • CANLI KANAL 1 • v0.27 SES/PTT","1.2 • GERÇEK CANLI KANAL 1 • v0.27 SES/PTT",1)
 ui.write_text(s)
 
