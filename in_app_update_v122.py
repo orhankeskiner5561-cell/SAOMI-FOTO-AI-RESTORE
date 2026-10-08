@@ -233,7 +233,7 @@ p.write_text(s)
 g=Path("app/build.gradle.kts")
 w=g.read_text()
 w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 142',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.11"',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.12"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
