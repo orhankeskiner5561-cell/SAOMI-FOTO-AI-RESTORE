@@ -71,7 +71,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
             val code = info.first
             val name = info.second
             val url = info.third
-            updateAvailable = code > 137 && url.startsWith("https://")
+            updateAvailable = code > 138 && url.startsWith("https://")
             if (updateAvailable) {
                 updateVersion = name
                 updateUrl = url
@@ -97,11 +97,11 @@ if member not in s:
     raise SystemExit("member button anchor missing")
 if 'YENİ GÜNCELLEME VAR' not in s:
     card='''            Surface(
-                Modifier.fillMaxWidth(),
+                Modifier.weight(1f).heightIn(min = 64.dp),
                 shape = RoundedCornerShape(14.dp),
                 color = if (updateAvailable) Color(0xFFFFE5E5) else Color(0xFFE8F5E9)
             ) {
-                Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     if (updateAvailable) {
                         Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020))
                         Text("MELEHAT TELSİZ " + updateVersion)
@@ -159,20 +159,37 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.3.7")
+                        Text("MELEHAT TELSİZ v1.3.8")
                     }
                 }
             }
 
 '''
-    # Keep member list visible: member button first, update card immediately below.
-    member_end='''            ) {
+    # Bottom controls: update card on the LEFT, members button on the RIGHT.
+    member_block='''            Button(
+                onClick = { showMembers = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text("ÜYELER: ${directory.size}")
             }
 '''
-    if member_end not in s:
-        raise SystemExit("member button end anchor missing")
-    s=s.replace(member_end, member_end+"\n"+card, 1)
+    if member_block not in s:
+        raise SystemExit("member button block missing")
+    compact_member='''            Button(
+                onClick = { showMembers = true },
+                modifier = Modifier.weight(1f).heightIn(min = 64.dp)
+            ) {
+                Text("ÜYELER: ${directory.size}")
+            }
+'''
+    bottom_row='''            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+''' + card + compact_member + '''            }
+'''
+    s=s.replace(member_block, bottom_row, 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -184,8 +201,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 137',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.7"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 138',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.8"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
