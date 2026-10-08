@@ -47,7 +47,7 @@ if hook in s and 'MELEHAT_UPDATE_MANIFEST' not in s:
                     val code=o.optInt("versionCode",0)
                     val name=o.optString("versionName","")
                     val url=o.optString("apkUrl","")
-                    if (code > 123 && url.startsWith("https://")) Pair(name,url) else null
+                    if (code > 124 && url.startsWith("https://")) Pair(name,url) else null
                 }
             }.getOrNull()
         }
@@ -69,18 +69,21 @@ member='''            Button(
 if member not in s:
     raise SystemExit("member button anchor missing")
 if 'YENİ GÜNCELLEME VAR' not in s:
-    card='''            if (updateAvailable) {
-                Surface(
-                    Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFFFFE5E5)
-                ) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    card='''            Surface(
+                Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = if (updateAvailable) Color(0xFFFFE5E5) else Color(0xFFE8F5E9)
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (updateAvailable) {
                         Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020))
                         Text("MELEHAT TELSİZ " + updateVersion)
                         Button(onClick = {
                             updateContext.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl)))
                         }) { Text("GÜNCELLE") }
+                    } else {
+                        Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
+                        Text("MELEHAT TELSİZ v1.2.4")
                     }
                 }
             }
@@ -92,8 +95,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 123',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.3"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 124',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.4"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
