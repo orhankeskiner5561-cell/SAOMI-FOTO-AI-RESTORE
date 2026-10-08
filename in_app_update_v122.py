@@ -71,7 +71,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
             val code = info.first
             val name = info.second
             val url = info.third
-            updateAvailable = code > 131 && url.startsWith("https://")
+            updateAvailable = code > 132 && url.startsWith("https://")
             if (updateAvailable) {
                 updateVersion = name
                 updateUrl = url
@@ -159,20 +159,23 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.3.1")
+                        Text("MELEHAT TELSİZ v1.3.2")
                     }
                 }
             }
 
 '''
     s=s.replace(member,card+member,1)
+# Final requested header-only UI change; do not touch PTT/LiveKit/members.
+s=s.replace('"MELEHAT TELSİZ"', '"MELE - HAT TELSİZ"', 1)
+s=s.replace("1.2 • GERÇEK CANLI KANAL 1 • v0.27 SES/PTT", "", 1)
 p.write_text(s)
 
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 131',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.1"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 132',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.2"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
