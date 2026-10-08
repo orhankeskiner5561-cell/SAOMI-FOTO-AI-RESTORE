@@ -71,7 +71,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
             val code = info.first
             val name = info.second
             val url = info.third
-            updateAvailable = code > 138 && url.startsWith("https://")
+            updateAvailable = code > 139 && url.startsWith("https://")
             if (updateAvailable) {
                 updateVersion = name
                 updateUrl = url
@@ -103,8 +103,8 @@ if 'YENİ GÜNCELLEME VAR' not in s:
             ) {
                 Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     if (updateAvailable) {
-                        Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020))
-                        Text("MELEHAT TELSİZ " + updateVersion)
+                        Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 13.sp)
+                        Text("MELEHAT TELSİZ " + updateVersion, fontSize = 12.sp)
                         if (updateDownloading) {
                             Text("APK indiriliyor… %" + updateProgress)
                         } else {
@@ -158,8 +158,8 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         Text("⚠️ GÜNCELLEME KONTROLÜ BAŞARISIZ", fontWeight = FontWeight.Bold)
                         Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
-                        Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.3.8")
+                        Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text("MELEHAT TELSİZ v1.3.9", fontSize = 12.sp)
                     }
                 }
             }
@@ -201,8 +201,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 138',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.8"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 139',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.9"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
