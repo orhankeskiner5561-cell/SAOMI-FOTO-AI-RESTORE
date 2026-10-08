@@ -47,7 +47,7 @@ if hook in s and 'MELEHAT_UPDATE_MANIFEST' not in s:
                     val code=o.optInt("versionCode",0)
                     val name=o.optString("versionName","")
                     val url=o.optString("apkUrl","")
-                    if (code > 122 && url.startsWith("https://")) Pair(name,url) else null
+                    if (code > 123 && url.startsWith("https://")) Pair(name,url) else null
                 }
             }.getOrNull()
         }
@@ -92,9 +92,9 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 122',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.2"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 123',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.2.3"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
-print("IN_APP_UPDATE_UI_122_OK")
+print("IN_APP_UPDATE_UI_123_OK")
