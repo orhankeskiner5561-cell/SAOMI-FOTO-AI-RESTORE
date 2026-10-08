@@ -100,7 +100,8 @@ jobs:
           ROOT=app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           MAN=app/src/main/AndroidManifest.xml
           PATHS=app/src/main/res/xml/file_paths.xml
-          grep -F 'Text("ÜYELER: ${directory.size}"' "$ROOT"
+          grep -F 'showMembers = true' "$ROOT"
+          grep -F 'directory.size' "$ROOT"
           grep -F 'MELEHAT_UPDATE_MANIFEST' "$ROOT"
           grep -F 'DownloadManager' "$ROOT"
           grep -F 'FileProvider.getUriForFile' "$ROOT"
