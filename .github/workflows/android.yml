@@ -91,6 +91,26 @@ jobs:
           (x/"file_paths.xml").write_text('<?xml version="1.0" encoding="utf-8"?><paths xmlns:android="http://schemas.android.com/apk/res/android"><external-files-path name="updates" path="updates/" /></paths>')
           PY
 
+      - name: Verify locked core and direct updater
+        working-directory: melehat_build
+        run: |
+          set -e
+          ROOT=app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          MAN=app/src/main/AndroidManifest.xml
+          PATHS=app/src/main/res/xml/file_paths.xml
+          grep -F 'Text("ÜYELER: ${directory.size}")' "$ROOT"
+          grep -F 'MELEHAT_UPDATE_MANIFEST' "$ROOT"
+          grep -F 'DownloadManager' "$ROOT"
+          grep -F 'FileProvider.getUriForFile' "$ROOT"
+          grep -F 'application/vnd.android.package-archive' "$ROOT"
+          grep -F 'REQUEST_INSTALL_PACKAGES' "$MAN"
+          grep -F 'androidx.core.content.FileProvider' "$MAN"
+          test -s "$PATHS"
+          grep -F 'external-files-path' "$PATHS"
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+          grep -R -F 'class LiveKitPttClient' app/src/main/java
+          echo LOCKED_CORE_AND_UPDATER_OK
+
       - name: Export generated AppRoot for direct UI source
         if: always()
         uses: actions/upload-artifact@v4
