@@ -71,7 +71,7 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
             val code = info.first
             val name = info.second
             val url = info.third
-            updateAvailable = code > 139 && url.startsWith("https://")
+            updateAvailable = code > 140 && url.startsWith("https://")
             if (updateAvailable) {
                 updateVersion = name
                 updateUrl = url
@@ -159,7 +159,7 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        Text("MELEHAT TELSİZ v1.3.9", fontSize = 12.sp)
+                        Text("MELEHAT TELSİZ v1.3.10", fontSize = 12.sp)
                     }
                 }
             }
@@ -195,14 +195,22 @@ if 'YENİ GÜNCELLEME VAR' not in s:
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
     raise SystemExit("Visible title anchor missing")
 s=s.replace('Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)', 'Text("MELE - HAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold, modifier = Modifier.statusBarsPadding().padding(top = 18.dp))', 1)
+# Show LiveKit join/leave/reconnect notices directly under the title.
+notice_anchor='Text("MELE - HAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold, modifier = Modifier.statusBarsPadding().padding(top = 18.dp))'
+if notice_anchor not in s:
+    raise SystemExit("MELE-HAT title missing after replacement")
+s=s.replace(notice_anchor, notice_anchor + '''
+            if (liveNotice.isNotBlank()) {
+                Text(liveNotice, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF6A4CAF))
+            }''', 1)
 s=s.replace("1.2 • GERÇEK CANLI KANAL 1 • v0.27 SES/PTT", "", 1)
 p.write_text(s)
 
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 139',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.9"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 140',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.10"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
