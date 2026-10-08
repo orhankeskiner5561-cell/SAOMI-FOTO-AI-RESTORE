@@ -240,7 +240,10 @@ extra=r'''
 
     LaunchedEffect(session?.userId) {
         val active = session ?: return@LaunchedEffect
-        backend.fetchMemberDirectory(active).onSuccess { directory = it }
+        while (true) {
+            backend.fetchMemberDirectory(active).onSuccess { directory = it }
+            delay(1000)
+        }
     }
     LaunchedEffect(liveNotice) {
         if (liveNotice.isNotBlank()) {
@@ -284,17 +287,7 @@ pattern=r'''            Surface\(
                     Text\("• Profil fotoğrafı zorunlu"\)
                 \}
             \)'''
-replacement=r'''            if (liveNotice.isNotBlank()) {
-                Surface(
-                    Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFE8F5E9)
-                ) {
-                    Text(liveNotice, Modifier.padding(12.dp), fontWeight = FontWeight.SemiBold)
-                }
-            }
-
-            Button(
+replacement=r'''            Button(
                 onClick = { showMembers = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
