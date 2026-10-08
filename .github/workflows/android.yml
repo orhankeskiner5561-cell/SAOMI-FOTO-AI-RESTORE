@@ -150,6 +150,13 @@ jobs:
           path: MELEHAT-TELSIZ.apk
           if-no-files-found: error
 
+      - name: Publish in-app update APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.2.5 >/dev/null 2>&1 && gh release delete v1.2.5 --yes --cleanup-tag || true
+          gh release create v1.2.5 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.2.5" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.2.5"
+
       - name: Verify APK package and signature
         run: |
           AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
