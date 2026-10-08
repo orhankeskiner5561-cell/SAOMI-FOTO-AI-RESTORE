@@ -207,7 +207,7 @@ s = s.replace(dialog_anchor, '''                Column(Modifier.weight(1f)) {
             }
 ''' + dialog_anchor, 1)
 # Compact labels for narrow side controls while retaining the existing actions.
-s = s.replace('Text("ÜYELER: ${directory.size}")', 'Text("ÜYELER\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 1)
+s = s.replace('Text("ÜYELER: ${directory.size}")', 'Text("ÜYELER\\\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 1)
 s = s.replace('Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 13.sp)', 'Text("🔴 YENİ", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 10.sp)', 1)
 s = s.replace('Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 13.sp)', 'Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 10.sp)', 1)
 s = s.replace('Text("MELEHAT TELSİZ v1.3.11", fontSize = 12.sp)', 'Text("v1.3.12", fontSize = 10.sp)', 1)
