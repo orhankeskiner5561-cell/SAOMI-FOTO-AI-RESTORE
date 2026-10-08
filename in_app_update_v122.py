@@ -218,6 +218,18 @@ s = s.replace('Text("APK indiriliyor… %" + updateProgress)', 'Text("İndiriliy
 # Fit the central press-to-talk control within the three-column row without changing gesture handling.
 s = s.replace('Surface(Modifier.size(185.dp).pointerInput(radioOn)', 'Surface(Modifier.size(154.dp).pointerInput(radioOn)', 1)
 s = s.replace('Text("v1.3.12", fontSize = 10.sp)', 'Text("v1.3.13", fontSize = 11.sp)', 1)
+# Align side cards at the bottom of the central PTT, without vertical hanging.
+s = s.replace('horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {', 'horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {', 1)
+# Keep side cards compact and ensure no text wraps letter-by-letter.
+s = s.replace('Text("MELEHAT TELSİZ " + updateVersion, fontSize = 12.sp)', 'Text("v" + updateVersion, fontSize = 11.sp, maxLines = 1)', 1)
+s = s.replace('Text("GÜNCELLE") }', 'Text("YÜKLE", fontSize = 11.sp, maxLines = 1) }', 1)
+s = s.replace('Text("ÜYELER\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 'Text("ÜYELER", fontSize = 12.sp, maxLines = 1)\n                Text("${directory.size}", fontSize = 14.sp)', 1)
+# Remove minimum oversized card height; a shared 104dp baseline keeps a neat row.
+s = s.replace('Modifier.fillMaxWidth().heightIn(min = 106.dp)', 'Modifier.fillMaxWidth().heightIn(min = 104.dp)')
+s = s.replace('Text("🔴 YENİ", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 10.sp)', 'Text("🔴 YENİ", fontWeight = FontWeight.Bold, color = Color(0xFFB00020), fontSize = 11.sp, maxLines = 1)', 1)
+s = s.replace('Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 10.sp)', 'Text("🟢 GÜNCEL", fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1)', 1)
+s = s.replace('code > 143', 'code > 144', 1)
+s = s.replace('Text("v1.3.13", fontSize = 11.sp)', 'Text("v1.3.14", fontSize = 11.sp)', 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -237,8 +249,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 143',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.13"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 144',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.14"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
