@@ -63,16 +63,22 @@ if 'MELEHAT_UPDATE_MANIFEST' not in s:
                     val code = o.optInt("versionCode", 0)
                     val name = o.optString("versionName", "")
                     val url = o.optString("apkUrl", "")
-                    if (code > 130 && url.startsWith("https://")) Pair(name, url) else null
+                    Triple(code, name, url)
                 }
             }.getOrNull()
         }
         if (info != null) {
-            updateVersion = info.first
-            updateUrl = info.second
-            updateAvailable = true
+            val code = info.first
+            val name = info.second
+            val url = info.third
+            updateAvailable = code > 131 && url.startsWith("https://")
+            if (updateAvailable) {
+                updateVersion = name
+                updateUrl = url
+            }
             updateCheckFailed = false
         } else {
+            updateAvailable = false
             updateCheckFailed = true
         }
         updateCheckDone = true
@@ -95,7 +101,7 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                 shape = RoundedCornerShape(14.dp),
                 color = if (updateAvailable) Color(0xFFFFE5E5) else Color(0xFFE8F5E9)
             ) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (updateAvailable) {
                         Text("🔴 YENİ GÜNCELLEME VAR", fontWeight = FontWeight.Bold, color = Color(0xFFB00020))
                         Text("MELEHAT TELSİZ " + updateVersion)
@@ -153,7 +159,7 @@ if 'YENİ GÜNCELLEME VAR' not in s:
                         Text("İnternet bağlantısını kontrol edip uygulamayı yeniden açın.")
                     } else {
                         Text("🟢 UYGULAMA GÜNCEL", fontWeight = FontWeight.Bold)
-                        Text("MELEHAT TELSİZ v1.3.0")
+                        Text("MELEHAT TELSİZ v1.3.1")
                     }
                 }
             }
@@ -165,8 +171,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 130',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.0"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 131',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.1"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
