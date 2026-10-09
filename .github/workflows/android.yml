@@ -227,6 +227,7 @@ jobs:
           grep -F 'automaticCloseStarted' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
           grep -F 'MelehatPendingRequestBadge' "$ROOT"
           grep -F 'channelListScroll.dispatchRawDelta' "$ROOT"
+          grep -F 'import androidx.compose.foundation.background' "$ROOT"
           grep -F 'pendingByRoom[item.roomId]' "$ROOT"
           grep -F 'VideoGrid(' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
           grep -F 'remoteTiles' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
