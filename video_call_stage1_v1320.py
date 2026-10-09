@@ -16,10 +16,10 @@ new = '''                                Row(
                                         modifier = Modifier.weight(1f),
                                         maxLines = 2
                                     )
-                                    TextButton(onClick = {
-                                        selectedVideoMemberName = member.fullName
+                                    if (member.userId != session?.userId) {\n                                    TextButton(onClick = {
+                                        selectedVideoMemberName = member.fullName\n                                        selectedVideoMemberId = member.userId
                                         showVideoCallInfo = true
-                                    }) { Text("📹 ARA") }
+                                    }) { Text("📹 ARA") }\n                                    }
                                 }'''
 if old not in s:
     raise SystemExit("Member row anchor changed; refuse unsafe patch")
@@ -28,7 +28,7 @@ anchor = '    var showMembers by remember { mutableStateOf(false) }'
 if anchor not in s:
     raise SystemExit("Member state anchor missing")
 s = s.replace(anchor, anchor + '''
-    var selectedVideoMemberName by remember { mutableStateOf("") }
+    var selectedVideoMemberName by remember { mutableStateOf("") }\n    var selectedVideoMemberId by remember { mutableStateOf("") }
     var showVideoCallInfo by remember { mutableStateOf(false) }''', 1)
 dialog = '''            if (showVideoCallInfo) {
                 AlertDialog(
