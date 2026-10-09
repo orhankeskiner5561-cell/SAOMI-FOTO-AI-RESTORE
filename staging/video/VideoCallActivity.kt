@@ -56,6 +56,7 @@ class VideoCallActivity : ComponentActivity() {
     private var pttWasOn = false
     private var videoStarted = false
     private var callEnded = false
+    private var automaticCloseStarted = false
     private var status by mutableStateOf("Aranıyor…")
     private var cameraOn by mutableStateOf(true)
     private var microphoneOn by mutableStateOf(true)
@@ -131,6 +132,17 @@ class VideoCallActivity : ComponentActivity() {
                         else -> status = "Aranıyor… Karşı tarafın cevabı bekleniyor."
                     }
                 }.onFailure { status = "Bağlantı kontrol ediliyor…" }
+                if (callEnded && !automaticCloseStarted) {
+                    automaticCloseStarted = true
+                    val finalNotice = status
+                    lifecycleScope.launch {
+                        delay(2500)
+                        android.widget.Toast.makeText(
+                            this@VideoCallActivity, finalNotice, android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        finish()
+                    }
+                }
                 delay(1600)
             }
         }
