@@ -119,6 +119,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/room_entry_ui_v1330.py
 
+      - name: Owner channel deletion and real room membership
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/room_owner_members_v1331.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -127,8 +131,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 160', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.30"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 161', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.31"', t, count=1)
           p.write_text(t)
           PY
 
@@ -157,7 +161,7 @@ jobs:
           MAN=app/src/main/AndroidManifest.xml
           PATHS=app/src/main/res/xml/file_paths.xml
           grep -F 'showMembers = true' "$ROOT"
-          grep -F 'directory.size' "$ROOT"
+          grep -F 'selectedMemberCount' "$ROOT"
           grep -F 'MELEHAT_UPDATE_MANIFEST' "$ROOT"
           grep -F 'DownloadManager' "$ROOT"
           grep -F 'FileProvider.getUriForFile' "$ROOT"
@@ -191,6 +195,12 @@ jobs:
           grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
           grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
           grep -F 'ORTAK KANALA GİR' "$ROOT"
+          grep -F 'KANALI SİL' "$ROOT"
+          grep -F '4 ÜYEYİ AKTAR' "$ROOT"
+          grep -F 'visibleMemberIds' "$ROOT"
+          grep -F 'melehat_delete_channel' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
+          grep -F 'melehat_import_legacy_members' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
+          grep -F 'LiveChannelUiState.roomId(channel.id)' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'KANALA GİR' "$ROOT"
           grep -F 'liveRoomName' "$ROOT"
           count="$(grep -c '^import com.saomi.telsiz.voice.LiveChannelUiState$' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)"
@@ -294,8 +304,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ 1.3.30 room routing"
+          gh release view v1.3.31 >/dev/null 2>&1 && { echo "Release v1.3.31 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.31 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.31" --notes "MELEHAT TELSIZ 1.3.31 room routing"
 
 
       - name: Verify APK package and signature
