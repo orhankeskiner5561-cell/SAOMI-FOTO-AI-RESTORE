@@ -141,6 +141,18 @@ fix('''        const val ACTION_START = "com.saomi.telsiz.START"''',
         const val EXTRA_ROOM_ID = "melehat.room.id"
         const val EXTRA_ROOM_NAME = "melehat.room.name"
         const val ACTION_START = "com.saomi.telsiz.START"''')
+# PttForegroundService already imported LiveChannelUiState in older builds.
+# Keep one copy of every import to avoid conflicting-import errors.
+seen_imports=set()
+unique_lines=[]
+for line in s.splitlines(keepends=True):
+    if line.startswith("import "):
+        name=line.strip()
+        if name in seen_imports:
+            continue
+        seen_imports.add(name)
+    unique_lines.append(line)
+s="".join(unique_lines)
 path.write_text(s,encoding="utf-8")
 
 # Existing Activity launches the same foreground service and keeps its volume
