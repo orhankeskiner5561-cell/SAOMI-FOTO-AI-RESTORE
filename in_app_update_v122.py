@@ -238,6 +238,33 @@ s = s.replace('Text("ÜYELER", fontSize = 12.sp, maxLines = 1)', 'Text("ÜYELER"
 s = s.replace('Modifier.fillMaxWidth().heightIn(min = 104.dp)', 'Modifier.fillMaxWidth().heightIn(min = 74.dp)')
 s = s.replace('code > 144', 'code > 145', 1)
 s = s.replace('Text("v1.3.14", fontSize = 11.sp)', 'Text("v1.3.15", fontSize = 11.sp)', 1)
+# New reference layout: central PTT above two equal-width cards.
+row_start = s.index('            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {')
+left_start = s.index('                Column(Modifier.weight(1f)) {', row_start)
+ptt_start = s.index('                Box(Modifier.size(164.dp), contentAlignment = Alignment.Center)', left_start)
+right_start = s.index('                Column(Modifier.weight(1f)) {', ptt_start)
+dialog_start = s.index('            if (showMembers) {', right_start)
+left_card = s[left_start:ptt_start]
+ptt = s[ptt_start:right_start]
+right_section = s[right_start:dialog_start]
+row_close = right_section.rfind('            }')
+if row_close < 0:
+    raise SystemExit("Missing original row close")
+right_card = right_section[:row_close]
+# Preserve the existing green button, its pointerInput gestures and all PTT callbacks.
+s = (s[:row_start] + '            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {\\n'
+     + ptt + '            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {\\n'
+     + left_card + right_card + '            }\\n            }\\n' + s[dialog_start:])
+# Side cards now have half the screen width; keep texts on full lines.
+s = s.replace('Text("GÜNCELLE", fontSize = 11.sp, maxLines = 1)', 'Text("GÜNCELLE", fontSize = 13.sp, maxLines = 1)', 1)
+s = s.replace('Text("ÜYELER", fontSize = 11.sp, maxLines = 1)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)', 1)
+# Revert green PTT to the original full-sized touch target, preserving gestures.
+s = s.replace('Box(Modifier.size(164.dp), contentAlignment = Alignment.Center)', 'Box(Modifier.size(270.dp), contentAlignment = Alignment.Center)', 1)
+s = s.replace('Surface(Modifier.size(154.dp).pointerInput(radioOn)', 'Surface(Modifier.size(185.dp).pointerInput(radioOn)', 1)
+# Update card must be green when current, red when a new release exists.
+s = s.replace('Color(0xFFFFE5E5) else Color(0xFFE8F5E9)', 'Color(0xFFFFE5E5) else Color(0xFFE8F5E9)', 1)
+# Do not replace the dynamic member count with a hard-coded value.
+s = s.replace('code > 145', 'code > 146', 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -257,8 +284,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 145',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.15"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 146',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.16"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
