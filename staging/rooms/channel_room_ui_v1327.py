@@ -27,7 +27,7 @@ state = '    var showCreateRoomPreview by remember { mutableStateOf(false) }'
 if state not in s:
     raise SystemExit("Original room preview state not found")
 s = s.replace(state, state + '''
-    val roomApi = remember { MelehatRoomApi() }
+    val roomApi = remember(updateContext) { MelehatRoomApi(updateContext) }
     var roomListings by remember { mutableStateOf<List<RoomListing>>(emptyList()) }
     var roomRequests by remember { mutableStateOf<List<RoomRequest>>(emptyList()) }
     var newRoomName by remember { mutableStateOf("") }
@@ -40,12 +40,20 @@ s = s.replace(state, state + '''
         val active = session ?: return@LaunchedEffect
         if (!showChannelRoomsPreview) return@LaunchedEffect
         roomBusy = true
+        val messages = mutableListOf<String>()
         roomApi.listRooms(active)
             .onSuccess { roomListings = it }
-            .onFailure { roomMessage = "Kanal listesi okunamadı: " + it.message.orEmpty() }
+            .onFailure {
+                roomListings = emptyList()
+                messages.add("Kanallar: " + it.message.orEmpty())
+            }
         roomApi.listRequests(active)
             .onSuccess { roomRequests = it }
-            .onFailure { roomMessage = "İstekler okunamadı: " + it.message.orEmpty() }
+            .onFailure {
+                roomRequests = emptyList()
+                messages.add("İstekler: " + it.message.orEmpty())
+            }
+        if (messages.isNotEmpty()) roomMessage = messages.joinToString(" • ")
         roomBusy = false
     }
     LaunchedEffect(roomCommand) {
