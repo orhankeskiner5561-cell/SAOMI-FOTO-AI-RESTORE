@@ -42,6 +42,8 @@ import kotlinx.coroutines.launch
  * published into the video call; its foreground service is suspended during
  * video and the user's previous PTT channel is restored on exit.
  */
+data class VideoTileModel(val identity: String, val label: String, val track: VideoTrack?)
+
 class VideoCallActivity : ComponentActivity() {
     companion object {
         const val EXTRA_CALL_ID = "melehat.video.call_id"
@@ -61,7 +63,7 @@ class VideoCallActivity : ComponentActivity() {
     private var cameraOn by mutableStateOf(true)
     private var microphoneOn by mutableStateOf(true)
     private var online by mutableStateOf(false)
-    private val tracks = mutableStateListOf<VideoTrack>()
+    private val remoteTiles = mutableStateListOf<VideoTileModel>()
     private var localTrack by mutableStateOf<VideoTrack?>(null)
     private var memberChoices by mutableStateOf<List<Pair<String, String>>>(emptyList())
     private var inviteOpen by mutableStateOf(false)
@@ -87,7 +89,7 @@ class VideoCallActivity : ComponentActivity() {
                     status = status,
                     videoRoom = room,
                     localVideo = localTrack,
-                    remoteVideos = tracks.toList(),
+                    remoteVideos = remoteTiles.toList(),
                     videoStarted = videoStarted,
                     cameraOn = cameraOn,
                     microphoneOn = microphoneOn,
@@ -187,16 +189,10 @@ class VideoCallActivity : ComponentActivity() {
                 launch {
                     videoRoom.events.collect { event ->
                         when (event) {
-                            is RoomEvent.TrackSubscribed -> {
-                                val track = event.track
-                                if (track is VideoTrack && !tracks.contains(track))
-                                    tracks.add(track)
-                            }
-                            is RoomEvent.TrackUnsubscribed -> {
-                                val track = event.track
-                                if (track is VideoTrack) tracks.remove(track)
-                            }
-                            is RoomEvent.ParticipantDisconnected -> updateRemoteTracks(videoRoom)
+                            is RoomEvent.TrackSubscribed -> updateRemoteTiles(videoRoom)
+                            is RoomEvent.TrackUnsubscribed -> updateRemoteTiles(videoRoom)
+                            is RoomEvent.ParticipantConnected -> updateRemoteTiles(videoRoom)
+                            is RoomEvent.ParticipantDisconnected -> updateRemoteTiles(videoRoom)
                             is RoomEvent.Disconnected -> status = "Görüşme bağlantısı kesildi."
                             else -> Unit
                         }
@@ -207,18 +203,23 @@ class VideoCallActivity : ComponentActivity() {
                 videoRoom.localParticipant.setCameraEnabled(true)
                 localTrack = videoRoom.localParticipant.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? VideoTrack
-                updateRemoteTracks(videoRoom)
+                updateRemoteTiles(videoRoom)
                 status = "Görüntülü görüşme • Bağlandı"
             }.onFailure { status = "Görüntülü bağlantı kurulamadı: " + it.message.orEmpty() }
         }
     }
 
-    private fun updateRemoteTracks(r: Room) {
-        val latest = r.remoteParticipants.values.mapNotNull { participant ->
-            participant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
-        }
-        tracks.clear()
-        tracks.addAll(latest)
+    private fun updateRemoteTiles(r: Room) {
+        // Do not remove a participant's equal-sized tile when their camera is off.
+        val latest = r.remoteParticipants.entries.map { (identity, participant) ->
+            VideoTileModel(
+                identity.toString(),
+                participant.name?.takeIf { it.isNotBlank() } ?: "Katılımcı",
+                participant.getTrackPublication(Track.Source.CAMERA)?.track as? VideoTrack
+            )
+        }.take(3)
+        remoteTiles.clear()
+        remoteTiles.addAll(latest)
     }
 
     private fun toggleCamera() {
@@ -281,8 +282,11 @@ class VideoCallActivity : ComponentActivity() {
 }
 
 @Composable
-private fun CallVideoPanel(room: Room, track: VideoTrack?, modifier: Modifier = Modifier) {
+private fun CallVideoPanel(
+    room: Room, track: VideoTrack?, label: String, modifier: Modifier = Modifier
+) {
     val ctx = LocalContext.current
+    // Give every panel its own renderer: one tile = one equal share of the grid.
     val renderer = remember(room, ctx) {
         SurfaceViewRenderer(ctx).also { room.initVideoRenderer(it) }
     }
@@ -291,18 +295,68 @@ private fun CallVideoPanel(room: Room, track: VideoTrack?, modifier: Modifier = 
         onDispose { track?.removeRenderer(renderer) }
     }
     DisposableEffect(renderer) { onDispose { renderer.release() } }
-    androidx.compose.foundation.layout.Box(modifier.background(Color.Black)) {
+    Box(modifier.background(Color.Black)) {
         AndroidView(factory = { renderer }, modifier = Modifier.fillMaxSize())
         if (track == null) {
-            Text("Kamera bekleniyor…", color = Color.White,
+            Text("Kamera bekleniyor", color = Color.White,
                 modifier = Modifier.align(Alignment.Center))
+        }
+        Text(
+            label, color = Color.White,
+            modifier = Modifier.align(Alignment.BottomStart)
+                .background(Color(0x99000000)).padding(7.dp)
+        )
+    }
+}
+
+@Composable
+private fun VideoGrid(
+    room: Room, localVideo: VideoTrack?, remoteVideos: List<VideoTileModel>,
+    modifier: Modifier = Modifier
+) {
+    // 2 people: 1 column / 2 equal rows.
+    // 3 or 4 people: a 2x2 grid, identical cell sizes (blank 4th cell for 3).
+    val tiles = listOf(VideoTileModel("me", "Ben", localVideo)) + remoteVideos.take(3)
+    val display = if (tiles.size == 1) tiles + VideoTileModel("waiting", "Karşı taraf", null)
+        else tiles
+    if (display.size <= 2) {
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            display.forEach { tile ->
+                key(tile.identity) {
+                    CallVideoPanel(room, tile.track, tile.label,
+                        Modifier.fillMaxWidth().weight(1f))
+                }
+            }
+        }
+    } else {
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (row in 0..1) {
+                Row(Modifier.weight(1f).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    for (col in 0..1) {
+                        val tile = display.getOrNull(row * 2 + col)
+                        if (tile == null) {
+                            Box(Modifier.weight(1f).fillMaxHeight().background(Color(0xFF26303D)),
+                                contentAlignment = Alignment.Center) {
+                                Text("Katılımcı bekleniyor", color = Color.LightGray)
+                            }
+                        } else {
+                            key(tile.identity) {
+                                CallVideoPanel(room, tile.track, tile.label,
+                                    Modifier.weight(1f).fillMaxHeight())
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun CallView(
-    status: String, videoRoom: Room?, localVideo: VideoTrack?, remoteVideos: List<VideoTrack>,
+    status: String, videoRoom: Room?, localVideo: VideoTrack?,
+    remoteVideos: List<VideoTileModel>,
     videoStarted: Boolean, cameraOn: Boolean, microphoneOn: Boolean, canInvite: Boolean,
     inviteOpen: Boolean, choices: List<Pair<String,String>>,
     onClose: () -> Unit, onCamera: () -> Unit, onMicrophone: () -> Unit,
@@ -311,32 +365,20 @@ private fun CallView(
     Column(
         modifier = Modifier.fillMaxSize().background(Color(0xFF141926))
             .systemBarsPadding().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text("MELEHAT • Özel Görüntülü Görüşme", color = Color.White,
             style = MaterialTheme.typography.titleMedium)
-        Text(status, color = Color.White)
+        Text(status + "  •  En fazla 4 kişi", color = Color.White)
         if (videoRoom != null && videoStarted) {
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                if (remoteVideos.isEmpty()) {
-                    Box(Modifier.fillMaxWidth().height(260.dp).background(Color.DarkGray),
-                        contentAlignment = Alignment.Center) {
-                        Text("Karşı tarafın kamerası bekleniyor", color = Color.White)
-                    }
-                }
-                remoteVideos.forEach { track ->
-                    CallVideoPanel(videoRoom, track, Modifier.fillMaxWidth().height(270.dp))
-                    Spacer(Modifier.height(6.dp))
-                }
-                Text("Benim kameram", color = Color.White)
-                CallVideoPanel(videoRoom, localVideo, Modifier.fillMaxWidth().height(180.dp))
-            }
+            VideoGrid(videoRoom, localVideo, remoteVideos,
+                Modifier.fillMaxWidth().weight(1f))
         } else {
             Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Button(onClick = onMicrophone, enabled = videoRoom != null) {
                 Text(if (microphoneOn) "Mikrofonu Kapat" else "Mikrofonu Aç")
             }
@@ -344,13 +386,14 @@ private fun CallView(
                 Text(if (cameraOn) "Kamerayı Kapat" else "Kamerayı Aç")
             }
         }
-        if (canInvite) Button(onClick = onInvite) { Text("+ Kişi Ekle") }
+        if (canInvite && remoteVideos.size < 3)
+            Button(onClick = onInvite) { Text("+ Kişi Ekle (En fazla 4)") }
         Button(onClick = onClose, colors = ButtonDefaults.buttonColors(
             containerColor = Color(0xFFB91C1C))) { Text("Görüşmeyi Bitir / Kapat") }
     }
     if (inviteOpen) AlertDialog(
         onDismissRequest = onInviteDismiss,
-        title = { Text("Görüntülü görüşmeye davet et") },
+        title = { Text("Görüntülü görüşmeye davet et (en fazla 4 kişi)") },
         text = {
             Column(Modifier.heightIn(max = 350.dp).verticalScroll(rememberScrollState())) {
                 choices.forEach { (id, name) ->
