@@ -60,7 +60,7 @@ enum class ChannelAudioMode {
 }
 
 data class ChannelRoutingState(
-    val focusedChannelId: String = "ortak",
+    val focusedChannelId: String? = null,
     val followedChannelIds: Set<String> = emptySet(),
     val microphoneChannelId: String? = null
 ) {
