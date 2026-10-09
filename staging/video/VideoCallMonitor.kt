@@ -10,6 +10,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioAttributes
 import android.media.RingtoneManager
+import android.media.Ringtone
+import android.media.AudioManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -38,8 +40,45 @@ object VideoCallMonitor {
     private val started = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
+    private val ringtoneGuard = Any()
+    private var ringingId: String? = null
+    private var activeRingtone: Ringtone? = null
+
+    private fun beginRinging(context: Context, callId: String) {
+        synchronized(ringtoneGuard) {
+            if (ringingId == callId && activeRingtone?.isPlaying == true) return
+            stopRingingLocked()
+            ringingId = callId
+            val normalSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            if (normalSound != null) {
+                runCatching {
+                    val sound = RingtoneManager.getRingtone(context.applicationContext, normalSound)
+                    if (sound != null) {
+                        sound.audioAttributes = AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                        if (Build.VERSION.SDK_INT >= 28) sound.isLooping = true
+                        sound.play()
+                        activeRingtone = sound
+                    }
+                }
+            }
+        }
+    }
+
+    private fun stopRingingLocked() {
+        runCatching { activeRingtone?.stop() }
+        activeRingtone = null
+        ringingId = null
+    }
+
+    private fun stopRinging() {
+        synchronized(ringtoneGuard) { stopRingingLocked() }
+    }
     private const val PREF = "melehat_video_notice_v1"
-    private const val INCOMING_CHANNEL = "melehat_video_incoming_v1"
+    private const val INCOMING_CHANNEL = "melehat_video_incoming_v2"
     private const val MISSED_CHANNEL = "melehat_video_missed_v1"
     private const val INCOMING_ID = 50260
     private const val MISSED_ID = 50261
@@ -90,6 +129,7 @@ object VideoCallMonitor {
                                 it.callerId != me.userId
                         }
                         if (ringing != null) {
+                            beginRinging(app, ringing.id)
                             if (p2.getString("incoming_id", "") != ringing.id) {
                                 val from = runCatching {
                                     backend.fetchMemberDirectory(me).getOrNull()
@@ -124,13 +164,13 @@ object VideoCallMonitor {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val ring = NotificationChannel(INCOMING_CHANNEL, "MELEHAT görüntülü aramalar",
             NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Kilit ekranında arayan adı ve cevap düğmeleri"
+            description = "Arayan adı ve cevap düğmeleri; zil MELEHAT tarafından çalınır"
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             enableVibration(true)
-            setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE),
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build())
+            // A stable per-call native ringtone plays explicitly. The system
+            // channel provides the visual full-screen call, but not a second
+            // overlapping ringtone.
+            setSound(null, null)
         }
         val missed = NotificationChannel(MISSED_CHANNEL, "MELEHAT cevapsız aramalar",
             NotificationManager.IMPORTANCE_DEFAULT).apply {
@@ -179,6 +219,7 @@ object VideoCallMonitor {
     }
 
     fun clearIncoming(context: Context) {
+        stopRinging()
         val p = preferences(context)
         if (p.getString("incoming_id", "").isNullOrBlank()) return
         p.edit().remove("incoming_id").apply()
