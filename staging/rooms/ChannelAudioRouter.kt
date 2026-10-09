@@ -19,15 +19,34 @@ interface RoomAccess {
     suspend fun allowed(channelId: String): Boolean
 }
 
+/** Server-checked, per-user preference persistence (RLS protected). */
+interface RoomFollowStore {
+    suspend fun loadActiveChannels(): Set<String>
+    suspend fun save(roomId: String, enabled: Boolean): Boolean
+}
+
 class ChannelAudioRouter(
     private val transport: MultiRoomTransport,
-    private val access: RoomAccess
+    private val access: RoomAccess,
+    private val preferences: RoomFollowStore
 ) {
     private val mutex = Mutex()
     private var selected: String? = null
     private val retained = mutableSetOf<String>()
     private val listening = mutableSetOf<String>()
     private var transmitting = false
+
+    suspend fun restoreFollowPreferences() = mutex.withLock {
+        retained.clear()
+        for (id in preferences.loadActiveChannels()) {
+            if (id != "ortak" && access.allowed(id)) retained.add(id)
+        }
+        for (id in retained) {
+            if (id != selected && id !in listening &&
+                transport.connect(id, receiveOnly = true)
+            ) listening.add(id)
+        }
+    }
 
     suspend fun select(channelId: String): Boolean = mutex.withLock {
         if (!access.allowed(channelId)) return@withLock false
@@ -46,13 +65,20 @@ class ChannelAudioRouter(
             transport.disconnect(channelId)
             listening.remove(channelId)
         }
-        if (!transport.connect(channelId, receiveOnly = false)) return@withLock false
+        if (!transport.connect(channelId, receiveOnly = false)) {
+            // A failed room change must not claim the microphone is connected.
+            if (channelId != "ortak" && access.allowed("ortak") &&
+                transport.connect("ortak", receiveOnly = false)
+            ) selected = "ortak"
+            return@withLock false
+        }
         selected = channelId
         true
     }
 
     suspend fun keepActive(channelId: String, enabled: Boolean): Boolean = mutex.withLock {
         if (channelId == "ortak" || !access.allowed(channelId)) return@withLock false
+        if (!preferences.save(channelId, enabled)) return@withLock false
         if (enabled) {
             retained.add(channelId)
             if (selected != channelId && channelId !in listening &&
@@ -88,12 +114,21 @@ class ChannelAudioRouter(
             transmitting = false
             transport.disconnect(focus)
             selected = null
+            if (access.allowed("ortak") &&
+                transport.connect("ortak", receiveOnly = false)
+            ) selected = "ortak"
+        }
+        // Restore dropped passive subscriptions after network recovery.
+        for (id in retained) {
+            if (id != selected && id !in listening && access.allowed(id) &&
+                transport.connect(id, receiveOnly = true)
+            ) listening.add(id)
         }
     }
 
     suspend fun state(): ChannelRoutingState = mutex.withLock {
         ChannelRoutingState(
-            focusedChannelId = selected ?: "ortak",
+            focusedChannelId = selected,
             followedChannelIds = listening.toSet(),
             microphoneChannelId = if (transmitting) selected else null
         )
