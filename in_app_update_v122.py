@@ -305,8 +305,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 150',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.20"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 151',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.21"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
