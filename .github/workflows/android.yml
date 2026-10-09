@@ -186,6 +186,294 @@ jobs:
             echo "Profile header still visible: failing visual validation"
             exit 1
           fi
+          test "$(grep -c '^import com.saomi.telsiz.voice.LiveChannelUiState
+          grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
+          grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'ORTAK KANALA GİR' "$ROOT"
+          grep -F 'KANALA GİR' "$ROOT"
+          grep -F 'liveRoomName' "$ROOT"
+          if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
+            echo 'Unexpected legacy direct member join in room selector'
+            exit 1
+          fi
+          echo MELEHAT_ROOM_API_AND_UI_OK
+          echo LOCKED_CORE_AND_UPDATER_OK
+
+      - name: Export generated AppRoot for direct UI source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GENERATED-APPROOT
+          path: melehat_build/app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: V28 source snapshot
+        run: |
+          cd melehat_build
+          zip -qr ../c56-source.zip app/src/main/java app/src/main/res app/src/main/AndroidManifest.xml app/build.gradle.kts
+
+      - name: Upload V28 source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: V28-SOURCE-SNAPSHOT
+          path: c56-source.zip
+
+      - name: V28 audio map source snapshot
+        run: |
+          cd melehat_build
+          grep -R -n "class LiveKitPttClient\|AudioTrack\|RemoteTrack\|setTransmitting\|participant\|speaker" app/src/main/java > ../c56-audio-map.txt || true
+
+      - name: Upload C56 audio map
+        uses: actions/upload-artifact@v4
+        with:
+          name: V28-AUDIO-MAP
+          path: c56-audio-map.txt
+
+      - name: Build APK
+        working-directory: melehat_build
+        run: |
+          set -o pipefail
+          gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
+
+      - name: Record limited compilation diagnostics on failed build
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source=Path('melehat-gradle-build.log')
+          if source.exists():
+              lines=source.read_text(errors='replace').splitlines()
+              matches=[]
+              for i,line in enumerate(lines):
+                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
+                      matches.append(i)
+              indexes=set()
+              for i in matches[:30]:
+                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
+              safe=[]
+              for i in sorted(indexes):
+                  line=lines[i]
+                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
+                      continue
+                  safe.append(f'{i+1}: {line[:350]}')
+              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
+                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
+          PY
+          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add staging/rooms/ci_build_errors_v1330.txt
+            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
+            git push origin HEAD:main || true
+          fi
+
+      - name: Sign permanent release APK
+        working-directory: melehat_build
+        env:
+          MELEHAT_KEYSTORE_B64: ${{ secrets.MELEHAT_KEYSTORE_B64 }}
+          MELEHAT_STORE_PASSWORD: ${{ secrets.MELEHAT_STORE_PASSWORD }}
+          MELEHAT_KEY_PASSWORD: ${{ secrets.MELEHAT_KEY_PASSWORD }}
+        run: |
+          test -n "$MELEHAT_KEYSTORE_B64" || { echo "Missing MELEHAT_KEYSTORE_B64"; exit 2; }
+          test -n "$MELEHAT_STORE_PASSWORD" || { echo "Missing MELEHAT_STORE_PASSWORD"; exit 2; }
+          test -n "$MELEHAT_KEY_PASSWORD" || { echo "Missing MELEHAT_KEY_PASSWORD"; exit 2; }
+          printf '%s' "$MELEHAT_KEYSTORE_B64" | base64 --decode > melehat-release.jks
+          UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/MELEHAT-aligned.apk
+          "$APKSIGNER" sign --ks melehat-release.jks --ks-pass env:MELEHAT_STORE_PASSWORD --key-pass env:MELEHAT_KEY_PASSWORD --out app/build/outputs/apk/release/MELEHAT-release.apk app/build/outputs/apk/release/MELEHAT-aligned.apk
+
+      - name: Prepare APK
+        run: cp melehat_build/app/build/outputs/apk/release/MELEHAT-release.apk MELEHAT-TELSIZ.apk
+
+      - name: Verify APK signature and alignment
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ.apk
+
+      - name: Upload APK artifact before emulator
+        uses: actions/upload-artifact@v4
+        with:
+          name: MELEHAT-TELSIZ
+          path: MELEHAT-TELSIZ.apk
+          if-no-files-found: error
+
+      - name: Publish in-app update APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+
+
+      - name: Verify APK package and signature
+        run: |
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$AAPT" dump badging MELEHAT-TELSIZ.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ.apk
+
+
+      - name: V28 verification complete
+        run: echo "C56 checks passed."
+ app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)" = "1"
+          test "$(grep -c '^import com.saomi.telsiz.model.ChannelInfo
+          grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
+          grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'ORTAK KANALA GİR' "$ROOT"
+          grep -F 'KANALA GİR' "$ROOT"
+          grep -F 'liveRoomName' "$ROOT"
+          if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
+            echo 'Unexpected legacy direct member join in room selector'
+            exit 1
+          fi
+          echo MELEHAT_ROOM_API_AND_UI_OK
+          echo LOCKED_CORE_AND_UPDATER_OK
+
+      - name: Export generated AppRoot for direct UI source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GENERATED-APPROOT
+          path: melehat_build/app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: V28 source snapshot
+        run: |
+          cd melehat_build
+          zip -qr ../c56-source.zip app/src/main/java app/src/main/res app/src/main/AndroidManifest.xml app/build.gradle.kts
+
+      - name: Upload V28 source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: V28-SOURCE-SNAPSHOT
+          path: c56-source.zip
+
+      - name: V28 audio map source snapshot
+        run: |
+          cd melehat_build
+          grep -R -n "class LiveKitPttClient\|AudioTrack\|RemoteTrack\|setTransmitting\|participant\|speaker" app/src/main/java > ../c56-audio-map.txt || true
+
+      - name: Upload C56 audio map
+        uses: actions/upload-artifact@v4
+        with:
+          name: V28-AUDIO-MAP
+          path: c56-audio-map.txt
+
+      - name: Build APK
+        working-directory: melehat_build
+        run: |
+          set -o pipefail
+          gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
+
+      - name: Record limited compilation diagnostics on failed build
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source=Path('melehat-gradle-build.log')
+          if source.exists():
+              lines=source.read_text(errors='replace').splitlines()
+              matches=[]
+              for i,line in enumerate(lines):
+                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
+                      matches.append(i)
+              indexes=set()
+              for i in matches[:30]:
+                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
+              safe=[]
+              for i in sorted(indexes):
+                  line=lines[i]
+                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
+                      continue
+                  safe.append(f'{i+1}: {line[:350]}')
+              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
+                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
+          PY
+          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add staging/rooms/ci_build_errors_v1330.txt
+            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
+            git push origin HEAD:main || true
+          fi
+
+      - name: Sign permanent release APK
+        working-directory: melehat_build
+        env:
+          MELEHAT_KEYSTORE_B64: ${{ secrets.MELEHAT_KEYSTORE_B64 }}
+          MELEHAT_STORE_PASSWORD: ${{ secrets.MELEHAT_STORE_PASSWORD }}
+          MELEHAT_KEY_PASSWORD: ${{ secrets.MELEHAT_KEY_PASSWORD }}
+        run: |
+          test -n "$MELEHAT_KEYSTORE_B64" || { echo "Missing MELEHAT_KEYSTORE_B64"; exit 2; }
+          test -n "$MELEHAT_STORE_PASSWORD" || { echo "Missing MELEHAT_STORE_PASSWORD"; exit 2; }
+          test -n "$MELEHAT_KEY_PASSWORD" || { echo "Missing MELEHAT_KEY_PASSWORD"; exit 2; }
+          printf '%s' "$MELEHAT_KEYSTORE_B64" | base64 --decode > melehat-release.jks
+          UNSIGNED=$(find app/build/outputs/apk/release -name '*unsigned*.apk' | head -1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$ZIPALIGN" -f 4 "$UNSIGNED" app/build/outputs/apk/release/MELEHAT-aligned.apk
+          "$APKSIGNER" sign --ks melehat-release.jks --ks-pass env:MELEHAT_STORE_PASSWORD --key-pass env:MELEHAT_KEY_PASSWORD --out app/build/outputs/apk/release/MELEHAT-release.apk app/build/outputs/apk/release/MELEHAT-aligned.apk
+
+      - name: Prepare APK
+        run: cp melehat_build/app/build/outputs/apk/release/MELEHAT-release.apk MELEHAT-TELSIZ.apk
+
+      - name: Verify APK signature and alignment
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          ZIPALIGN=$(find "$ANDROID_HOME/build-tools" -type f -name zipalign | sort -V | tail -1)
+          "$APKSIGNER" verify --verbose --print-certs MELEHAT-TELSIZ.apk
+          "$ZIPALIGN" -c -v 4 MELEHAT-TELSIZ.apk
+
+      - name: Upload APK artifact before emulator
+        uses: actions/upload-artifact@v4
+        with:
+          name: MELEHAT-TELSIZ
+          path: MELEHAT-TELSIZ.apk
+          if-no-files-found: error
+
+      - name: Publish in-app update APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+
+
+      - name: Verify APK package and signature
+        run: |
+          AAPT=$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -1)
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -1)
+          "$AAPT" dump badging MELEHAT-TELSIZ.apk | head -n 5
+          "$APKSIGNER" verify --verbose MELEHAT-TELSIZ.apk
+
+
+      - name: V28 verification complete
+        run: echo "C56 checks passed."
+ app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)" = "1"
           grep -F 'ACTION_SWITCH_ROOM' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
