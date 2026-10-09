@@ -27,7 +27,8 @@ state = '    var showCreateRoomPreview by remember { mutableStateOf(false) }'
 if state not in s:
     raise SystemExit("Original room preview state not found")
 s = s.replace(state, state + '''
-    val roomApi = remember(updateContext) { MelehatRoomApi(updateContext) }
+    val roomsContext = androidx.compose.ui.platform.LocalContext.current
+    val roomApi = remember(roomsContext) { MelehatRoomApi(roomsContext) }
     var roomListings by remember { mutableStateOf<List<RoomListing>>(emptyList()) }
     var roomRequests by remember { mutableStateOf<List<RoomRequest>>(emptyList()) }
     var newRoomName by remember { mutableStateOf("") }
