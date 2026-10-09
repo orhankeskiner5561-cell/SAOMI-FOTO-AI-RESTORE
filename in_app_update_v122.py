@@ -265,6 +265,17 @@ s = s.replace('Surface(Modifier.size(154.dp).pointerInput(radioOn)', 'Surface(Mo
 s = s.replace('Color(0xFFFFE5E5) else Color(0xFFE8F5E9)', 'Color(0xFFFFE5E5) else Color(0xFFE8F5E9)', 1)
 # Do not replace the dynamic member count with a hard-coded value.
 s = s.replace('code > 145', 'code > 146', 1)
+# v1.3.17 visual corrections: preserve LiveKit, PTT handlers and update downloader.
+# Keep the green PTT circle at its original 185dp; its surrounding Box must not inflate the rings.
+s = s.replace('Box(Modifier.size(270.dp), contentAlignment = Alignment.Center)', 'Box(Modifier.size(210.dp), contentAlignment = Alignment.Center)', 1)
+# Replace malformed literal backslash-n in the member label with a Compose column.
+s = s.replace('Text("ÜYELER\\\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)\\n                    Text("${directory.size}", fontSize = 20.sp, color = Color(0xFF5740B6))', 1)
+s = s.replace('Text("ÜYELER\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)\\n                    Text("${directory.size}", fontSize = 20.sp, color = Color(0xFF5740B6))', 1)
+# The update action should be readable across the full half-width card.
+s = s.replace('Text("GÜNCELLE", fontSize = 13.sp, maxLines = 1)', 'Text("GÜNCELLE", fontSize = 12.sp, maxLines = 1)', 1)
+# Current version label should match the installed build.
+s = s.replace('Text("v1.3.15", fontSize = 11.sp)', 'Text("v1.3.17", fontSize = 11.sp)', 1)
+s = s.replace('code > 146', 'code > 147', 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -284,8 +295,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 146',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.16"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 147',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.17"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
