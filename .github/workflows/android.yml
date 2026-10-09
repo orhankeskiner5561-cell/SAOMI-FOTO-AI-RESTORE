@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - "melehat-update.json"
       - "MELEHAT_PRIVATE_VIDEO_CALL_PLAN.md"
+      - "channel_rooms_stage1_spec.md"
+      - "staging/**"
 
 jobs:
   build:
