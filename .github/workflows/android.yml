@@ -5,7 +5,8 @@ on:
   push:
     branches: [ "main" ]
     paths-ignore:
-      - "melehat-update.json"\n      - "MELEHAT_PRIVATE_VIDEO_CALL_PLAN.md"
+      - "melehat-update.json"
+      - "MELEHAT_PRIVATE_VIDEO_CALL_PLAN.md"
 
 jobs:
   build:
