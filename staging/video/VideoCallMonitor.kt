@@ -105,7 +105,7 @@ object VideoCallMonitor {
                             it.myState == "missed" && it.callerId != me.userId
                         }
                         if (missed != null &&
-                            p2.getString("last_missed_id", "") != missed.id) {
+                            p2.getString("last_handled_missed_id", "") != missed.id) {
                             val from = runCatching {
                                 backend.fetchMemberDirectory(me).getOrNull()
                                     ?.firstOrNull { it.userId == missed.callerId }
@@ -190,6 +190,7 @@ object VideoCallMonitor {
         val stamp = System.currentTimeMillis()
         preferences(context).edit()
             .putString("last_missed_id", callId)
+            .putString("last_handled_missed_id", callId)
             .putString("last_missed_name", callerName)
             .putLong("last_missed_time", stamp).apply()
         latestMissed.value = MelehatMissedCall(callId, callerName, stamp)
@@ -206,7 +207,7 @@ object VideoCallMonitor {
             .setStyle(NotificationCompat.BigTextStyle()
                 .bigText("Son arayan: $callerName • Cevapsız görüntülü arama"))
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setCategory(NotificationCompat.CATEGORY_MISSED_CALL)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
             .setContentIntent(content)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
