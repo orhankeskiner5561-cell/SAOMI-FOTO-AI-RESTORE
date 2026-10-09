@@ -252,9 +252,9 @@ if row_close < 0:
     raise SystemExit("Missing original row close")
 right_card = right_section[:row_close]
 # Preserve the existing green button, its pointerInput gestures and all PTT callbacks.
-s = (s[:row_start] + '            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {\\n'
-     + ptt + '            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {\\n'
-     + left_card + right_card + '            }\\n            }\\n' + s[dialog_start:])
+s = (s[:row_start] + '            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {\n'
+     + ptt + '            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {\n'
+     + left_card + right_card + '            }\\n            }\n' + s[dialog_start:])
 # Side cards now have half the screen width; keep texts on full lines.
 s = s.replace('Text("GÜNCELLE", fontSize = 11.sp, maxLines = 1)', 'Text("GÜNCELLE", fontSize = 13.sp, maxLines = 1)', 1)
 s = s.replace('Text("ÜYELER", fontSize = 11.sp, maxLines = 1)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)', 1)
