@@ -147,6 +147,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/room_decision_notifications_v1337.py
 
+      - name: Incoming caller lockscreen and missed-call notices
+        working-directory: melehat_build
+        run: python3 ../staging/video/integrate_call_notifications_v1338.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -155,8 +159,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 167', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.37"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 168', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.38"', t, count=1)
           p.write_text(t)
           PY
 
@@ -222,6 +226,16 @@ jobs:
           grep -F 'commonLandingHandledUser' "$ROOT"
           grep -F 'roomSelection = createdId to cmd.second' "$ROOT"
           grep -F 'incomingVideoCall' "$ROOT"
+          grep -F 'lastMissedVideo' "$ROOT"
+          grep -F 'Kilit ekranında gelen aramayı göster' "$ROOT"
+          grep -F 'VideoCallMonitor.start(applicationContext)' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'VideoCallMonitor.start(applicationContext)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'android.permission.USE_FULL_SCREEN_INTENT' "$MAN"
+          grep -F 'android.permission.POST_NOTIFICATIONS' "$MAN"
+          grep -F 'IncomingVideoCallActivity' "$MAN"
+          grep -F 'setFullScreenIntent(full, true)' app/src/main/java/com/saomi/telsiz/video/VideoCallMonitor.kt
+          grep -F 'setTurnScreenOn(true)' app/src/main/java/com/saomi/telsiz/video/IncomingVideoCallActivity.kt
+          grep -F 'latestMissed' app/src/main/java/com/saomi/telsiz/video/VideoCallMonitor.kt
           grep -F 'GÖRÜNTÜLÜ ARA' "$ROOT"
           grep -F 'AÇ / KABUL ET' "$ROOT"
           grep -F 'REDDET / KAPAT' "$ROOT"
@@ -365,8 +379,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.37 >/dev/null 2>&1 && { echo "Release v1.3.37 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.37 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.37" --notes "MELEHAT TELSIZ 1.3.37 four equal video tiles and channel join-request badges"
+          gh release view v1.3.38 >/dev/null 2>&1 && { echo "Release v1.3.38 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.38 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.38" --notes "MELEHAT TELSIZ 1.3.38 four equal video tiles and channel join-request badges"
 
 
       - name: Verify APK package and signature
