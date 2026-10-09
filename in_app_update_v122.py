@@ -268,9 +268,8 @@ s = s.replace('code > 145', 'code > 146', 1)
 # v1.3.17 visual corrections: preserve LiveKit, PTT handlers and update downloader.
 # Keep the green PTT circle at its original 185dp; its surrounding Box must not inflate the rings.
 s = s.replace('Box(Modifier.size(270.dp), contentAlignment = Alignment.Center)', 'Box(Modifier.size(210.dp), contentAlignment = Alignment.Center)', 1)
-# Replace malformed literal backslash-n in the member label with a Compose column.
-s = s.replace('Text("ÜYELER\\\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)\\n                    Text("${directory.size}", fontSize = 20.sp, color = Color(0xFF5740B6))', 1)
-s = s.replace('Text("ÜYELER\\n${directory.size}", fontSize = 13.sp, lineHeight = 16.sp)', 'Text("ÜYELER", fontSize = 14.sp, maxLines = 1)\\n                    Text("${directory.size}", fontSize = 20.sp, color = Color(0xFF5740B6))', 1)
+# Keep the existing member button text and use a proper Kotlin newline escape.
+s = s.replace('ÜYELER\\\\n', 'ÜYELER\\n')
 # The update action should be readable across the full half-width card.
 s = s.replace('Text("GÜNCELLE", fontSize = 13.sp, maxLines = 1)', 'Text("GÜNCELLE", fontSize = 12.sp, maxLines = 1)', 1)
 # Current version label should match the installed build.
