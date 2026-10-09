@@ -19,7 +19,7 @@ class SupabaseChannelFollowStore(
     private val baseUrl: String,
     private val publishableKey: String,
     private val userId: String,
-    private val accessToken: String
+    private val currentAccessToken: () -> String
 ) : RoomFollowStore {
     private val endpoint
         get() = baseUrl.trimEnd('/') + "/rest/v1/melehat_channel_follow_preferences"
@@ -28,10 +28,10 @@ class SupabaseChannelFollowStore(
         val request = Request.Builder()
             .url("$endpoint?select=channel_id,keep_active&keep_active=eq.true")
             .header("apikey", publishableKey)
-            .header("Authorization", "Bearer $accessToken")
+            .header("Authorization", "Bearer ${currentAccessToken()}")
             .get().build()
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return@withContext emptySet()
+            if (!response.isSuccessful) error("Channel follow settings unavailable: HTTP ${response.code}")
             val array = JSONArray(response.body?.string().orEmpty())
             buildSet {
                 for (i in 0 until array.length()) {
@@ -53,7 +53,7 @@ class SupabaseChannelFollowStore(
             val request = Request.Builder()
                 .url("$endpoint?on_conflict=user_id,channel_id")
                 .header("apikey", publishableKey)
-                .header("Authorization", "Bearer $accessToken")
+                .header("Authorization", "Bearer ${currentAccessToken()}")
                 .header("Prefer", "resolution=merge-duplicates,return=minimal")
                 .post(payload.toRequestBody("application/json".toMediaType()))
                 .build()
