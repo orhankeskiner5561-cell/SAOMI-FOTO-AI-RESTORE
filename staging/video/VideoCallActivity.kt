@@ -245,7 +245,12 @@ class VideoCallActivity : ComponentActivity() {
         connectionJob?.cancel()
         val oldRoom = room
         room = null
-        lifecycleScope.launch { runCatching { oldRoom?.disconnect() } }
+        kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() +
+            kotlinx.coroutines.Dispatchers.IO).launch {
+            runCatching { oldRoom?.localParticipant?.setCameraEnabled(false) }
+            runCatching { oldRoom?.localParticipant?.setMicrophoneEnabled(false) }
+            runCatching { oldRoom?.disconnect() }
+        }
         // Restore same channel after the call, not the new private video room.
         if (pttWasOn) {
             val local = LocalStore(this)
