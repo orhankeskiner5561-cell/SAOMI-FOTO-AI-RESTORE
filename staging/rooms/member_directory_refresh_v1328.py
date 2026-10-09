@@ -21,9 +21,9 @@ replacement = r'''    suspend fun fetchMemberDirectory(session: AuthSession): Re
                         response.code to response.body?.string().orEmpty()
                     }
                 }
-                val stored = SessionStore(context.applicationContext).load()
-                val current = stored?.takeIf { it.userId == session.userId } ?: session
-                var result = fetch(current)
+                // BackendApi's Context constructor argument need not be a
+                // stored class property; refresh only when the JWT expires.
+                var result = fetch(session)
                 if (result.first == 401) {
                     val renewed = refresher.refresh()
                         ?: error("Üye listesi oturumu yenilenemedi.")
