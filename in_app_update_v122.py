@@ -278,6 +278,14 @@ s = s.replace('code > 146', 'code > 147', 1)
 # Compare against the actual installed Android version, not a stale hard-coded number.
 s = s.replace('code > 142 && url.startsWith("https://")', 'code.toLong() > updateContext.packageManager.getPackageInfo(updateContext.packageName, 0).longVersionCode && url.startsWith("https://")', 1)
 
+# Definitive updater fix: replace the actual generated Kotlin expression after all prior patches.
+s = s.replace('updateAvailable = code > 147 && url.startsWith("https://")',
+              'updateAvailable = code.toLong() > updateContext.packageManager.getPackageInfo(updateContext.packageName, 0).longVersionCode && url.startsWith("https://")', 1)
+s = s.replace('updateAvailable = code > 141 && url.startsWith("https://")',
+              'updateAvailable = code.toLong() > updateContext.packageManager.getPackageInfo(updateContext.packageName, 0).longVersionCode && url.startsWith("https://")', 1)
+# Display installed package version, not the previous release's hardcoded label.
+s = s.replace('Text("v1.3.17", fontSize = 11.sp)',
+              'Text("v" + (updateContext.packageManager.getPackageInfo(updateContext.packageName, 0).versionName ?: ""), fontSize = 11.sp)', 1)
 # Final requested header-only UI change; do not touch PTT/LiveKit/members.
 # Move only the visible top title below the Android status bar. Preserve the radio core.
 if 'Text("MELEHAT TELSİZ", fontSize = 26.sp, fontWeight = FontWeight.Bold)' not in s:
@@ -297,8 +305,8 @@ p.write_text(s)
 # Keep permanent identity; updater bootstrap is 1.2.2.
 g=Path("app/build.gradle.kts")
 w=g.read_text()
-w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 148',w,count=1)
-w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.18"',w,count=1)
+w=re.sub(r'versionCode\s*=\s*\d+','versionCode = 149',w,count=1)
+w=re.sub(r'versionName\s*=\s*"[^"]+"','versionName = "1.3.19"',w,count=1)
 if 'applicationId = "com.melehat.telsiz"' not in w:
     raise SystemExit("permanent applicationId changed")
 g.write_text(w)
