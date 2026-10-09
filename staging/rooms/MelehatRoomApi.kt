@@ -17,7 +17,7 @@ import org.json.JSONObject
 data class RoomListing(val roomId: String, val title: String,
     val ownerId: String, val member: Boolean)
 data class RoomRequest(val id: String, val roomId: String,
-    val requesterId: String, val status: String)
+    val requesterId: String, val status: String, val resultSeenAt: String? = null)
 
 /** Staged: authenticated Supabase room operations; PTT remains unchanged. */
 class MelehatRoomApi(context: Context) {
@@ -119,18 +119,36 @@ class MelehatRoomApi(context: Context) {
         withContext(Dispatchers.IO) {
             runCatching {
                 val arr = array(
-                    "/rest/v1/melehat_channel_join_requests?select=id,channel_id,requester_id,status&order=created_at.desc",
+                    "/rest/v1/melehat_channel_join_requests?select=id,channel_id,requester_id,status,result_seen_at&order=created_at.desc",
                     session
                 )
                 buildList {
                     for (i in 0 until arr.length()) {
                         val o = arr.getJSONObject(i)
                         add(RoomRequest(o.optString("id"), o.optString("channel_id"),
-                            o.optString("requester_id"), o.optString("status")))
+                            o.optString("requester_id"), o.optString("status"),
+                            o.optString("result_seen_at").takeUnless {
+                                it.isBlank() || it == "null"
+                            }))
                     }
                 }
             }
         }
+
+    /** Each requester may acknowledge only their own decided requests. */
+    suspend fun markDecisionNoticesSeen(
+        session: AuthSession, requestIds: List<String>
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        runCatching {
+            if (requestIds.isEmpty()) return@runCatching 0
+            val ids = requestIds.distinct().take(100)
+            require(ids.all {
+                it.matches(Regex("[a-f0-9-]{36}", RegexOption.IGNORE_CASE))
+            }) { "Geçersiz bildirim kimliği" }
+            val data = JSONObject().put("p_request_ids", JSONArray(ids))
+            rpc("melehat_mark_join_decisions_seen", session, data).toInt()
+        }
+    }
 
     suspend fun createRoom(session: AuthSession, name: String): Result<String> =
         withContext(Dispatchers.IO) {
