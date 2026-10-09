@@ -155,4 +155,44 @@ class MelehatRoomApi(context: Context) {
                 .put("p_request_id", requestId).put("p_approve", approve))
         }
     }
+
+    suspend fun listRoomMemberIds(session: AuthSession, roomId: String): Result<Set<String>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                require(roomId.matches(Regex("kanal-[a-z0-9-]{1,64}"))) {
+                    "Geçersiz oda kimliği"
+                }
+                val arr = array(
+                    "/rest/v1/channel_members?select=user_id&channel_id=eq." + roomId,
+                    session
+                )
+                buildSet {
+                    for (i in 0 until arr.length()) {
+                        add(arr.getJSONObject(i).getString("user_id"))
+                    }
+                }
+            }
+        }
+
+    suspend fun deleteRoom(session: AuthSession, roomId: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                require(roomId != "ortak" && roomId.matches(Regex("kanal-[a-z0-9-]{1,64}")))
+                val answer = rpc("melehat_delete_channel", session,
+                    JSONObject().put("p_channel_id", roomId))
+                if (answer != "true") error("Kanal silme onaylanmadı.")
+                answer
+            }
+        }
+
+    suspend fun importLegacyMembers(session: AuthSession, targetRoomId: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                require(targetRoomId != "kanal-1" &&
+                    targetRoomId.matches(Regex("kanal-[a-z0-9-]{1,64}")))
+                val total = rpc("melehat_import_legacy_members", session,
+                    JSONObject().put("p_target_channel_id", targetRoomId))
+                "Özel kanalda " + total.toInt() + " onaylı üye var."
+            }
+        }
 }
