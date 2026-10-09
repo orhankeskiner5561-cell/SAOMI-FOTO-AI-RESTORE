@@ -123,6 +123,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/room_owner_members_v1331.py
 
+      - name: Start signed-in users in common channel
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/common_landing_after_login_v1332.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -131,8 +135,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 161', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.31"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 162', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.32"', t, count=1)
           p.write_text(t)
           PY
 
@@ -195,6 +199,9 @@ jobs:
           grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
           grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
           grep -F 'ORTAK KANALA GİR' "$ROOT"
+          grep -F 'commonLandingHandledUser' "$ROOT"
+          grep -F 'roomSelection = lobby.id to lobby.name' "$ROOT"
+          grep -F 'LaunchedEffect(session?.userId, profile.isComplete)' "$ROOT"
           grep -F 'KANALI SİL' "$ROOT"
           grep -F '4 ÜYEYİ AKTAR' "$ROOT"
           grep -F 'visibleMemberIds' "$ROOT"
@@ -304,8 +311,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.31 >/dev/null 2>&1 && { echo "Release v1.3.31 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.31 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.31" --notes "MELEHAT TELSIZ 1.3.31 room routing"
+          gh release view v1.3.32 >/dev/null 2>&1 && { echo "Release v1.3.32 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.32 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.32" --notes "MELEHAT TELSIZ 1.3.32 room routing"
 
 
       - name: Verify APK package and signature
