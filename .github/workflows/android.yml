@@ -107,23 +107,17 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/compact_main_ui_v1329.py
 
-      - name: Add authorized common-room token and isolated LiveKit room state
+      - name: Generate common LiveKit room connector
         working-directory: melehat_build
-        run: |
-          set -o pipefail
-          python3 ../staging/rooms/common_livekit_v1330.py 2>&1 | tee -a ../melehat-stage.log
+        run: python3 ../staging/rooms/common_livekit_v1330.py
 
-      - name: Add safe PTT channel switching and common-room migration
+      - name: Generate serialized PTT room switching
         working-directory: melehat_build
-        run: |
-          set -o pipefail
-          python3 ../staging/rooms/ptt_safe_room_switch_v1330.py 2>&1 | tee -a ../melehat-stage.log
+        run: python3 ../staging/rooms/ptt_safe_room_switch_v1330.py
 
-      - name: Link approved room directory to real common and private audio entry
+      - name: Connect authorized rooms to service
         working-directory: melehat_build
-        run: |
-          set -o pipefail
-          python3 ../staging/rooms/room_entry_ui_v1330.py 2>&1 | tee -a ../melehat-stage.log
+        run: python3 ../staging/rooms/room_entry_ui_v1330.py
 
       - name: Set release version in same build
         working-directory: melehat_build
@@ -192,7 +186,6 @@ jobs:
             echo "Profile header still visible: failing visual validation"
             exit 1
           fi
-          test "$(grep -c '^import com.saomi.telsiz.voice.LiveChannelUiState
           grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
@@ -200,11 +193,7 @@ jobs:
           grep -F 'ORTAK KANALA GİR' "$ROOT"
           grep -F 'KANALA GİR' "$ROOT"
           grep -F 'liveRoomName' "$ROOT"
-          if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
-            echo 'Unexpected legacy direct member join in room selector'
-            exit 1
-          fi
-          echo MELEHAT_ROOM_API_AND_UI_OK
+          count="$(grep -c '^import com.saomi.telsiz.voice.LiveChannelUiState
           echo LOCKED_CORE_AND_UPDATER_OK
 
       - name: Export generated AppRoot for direct UI source
@@ -251,43 +240,13 @@ jobs:
           set -o pipefail
           gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
 
-      - name: Record limited compilation diagnostics on failed build
+      - name: Upload compilation logs on build failure
         if: failure()
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          source=Path('melehat-gradle-build.log')
-          stage=Path('melehat-stage.log')
-          if source.exists() or stage.exists():
-              lines=[]
-              for f in (stage,source):
-                  if f.exists():
-                      lines += [f.name+': '+line for line in f.read_text(errors='replace').splitlines()]
-              matches=[]
-              for i,line in enumerate(lines):
-                  if (line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or
-                      ' error: ' in line or 'SystemExit:' in line or
-                      'anchor' in line.lower() or 'Traceback' in line):
-                      matches.append(i)
-              indexes=set()
-              for i in matches[:30]:
-                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
-              safe=[]
-              for i in sorted(indexes):
-                  line=lines[i]
-                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
-                      continue
-                  safe.append(f'{i+1}: {line[:350]}')
-              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
-                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
-          PY
-          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add staging/rooms/ci_build_errors_v1330.txt
-            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
-            git push origin HEAD:main || true
-          fi
+        uses: actions/upload-artifact@v4
+        with:
+          name: MELEHAT-GRADLE-ERRORS
+          path: melehat-gradle-build.log
+          if-no-files-found: ignore
 
       - name: Sign permanent release APK
         working-directory: melehat_build
@@ -328,7 +287,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ 1.3.30 room routing"
 
 
       - name: Verify APK package and signature
@@ -341,20 +300,9 @@ jobs:
 
       - name: V28 verification complete
         run: echo "C56 checks passed."
- app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)" = "1"
-          test "$(grep -c '^import com.saomi.telsiz.model.ChannelInfo
-          grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
-          grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
-          grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
-          grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
-          grep -F 'ORTAK KANALA GİR' "$ROOT"
-          grep -F 'KANALA GİR' "$ROOT"
-          grep -F 'liveRoomName' "$ROOT"
-          if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
-            echo 'Unexpected legacy direct member join in room selector'
-            exit 1
-          fi
-          echo MELEHAT_ROOM_API_AND_UI_OK
+ app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)"
+          test "$count" -eq 1
+          count="$(grep -c '^import com.saomi.telsiz.model.ChannelInfo
           echo LOCKED_CORE_AND_UPDATER_OK
 
       - name: Export generated AppRoot for direct UI source
@@ -397,41 +345,7 @@ jobs:
 
       - name: Build APK
         working-directory: melehat_build
-        run: |
-          set -o pipefail
-          gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
-
-      - name: Record limited compilation diagnostics on failed build
-        if: failure()
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          source=Path('melehat-gradle-build.log')
-          if source.exists():
-              lines=source.read_text(errors='replace').splitlines()
-              matches=[]
-              for i,line in enumerate(lines):
-                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
-                      matches.append(i)
-              indexes=set()
-              for i in matches[:30]:
-                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
-              safe=[]
-              for i in sorted(indexes):
-                  line=lines[i]
-                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
-                      continue
-                  safe.append(f'{i+1}: {line[:350]}')
-              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
-                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
-          PY
-          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add staging/rooms/ci_build_errors_v1330.txt
-            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
-            git push origin HEAD:main || true
-          fi
+        run: gradle assembleRelease --stacktrace
 
       - name: Sign permanent release APK
         working-directory: melehat_build
@@ -472,7 +386,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ 1.3.30 room routing"
 
 
       - name: Verify APK package and signature
@@ -485,17 +399,10 @@ jobs:
 
       - name: V28 verification complete
         run: echo "C56 checks passed."
- app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)" = "1"
-          grep -F 'ACTION_SWITCH_ROOM' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
-          grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
-          grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
-          grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
-          grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
-          grep -F 'ORTAK KANALA GİR' "$ROOT"
-          grep -F 'KANALA GİR' "$ROOT"
-          grep -F 'liveRoomName' "$ROOT"
+ app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt)"
+          test "$count" -eq 1
           if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
-            echo 'Unexpected legacy direct member join in room selector'
+            echo "Legacy direct channel join found; refusing release"
             exit 1
           fi
           echo MELEHAT_ROOM_API_AND_UI_OK
@@ -541,41 +448,7 @@ jobs:
 
       - name: Build APK
         working-directory: melehat_build
-        run: |
-          set -o pipefail
-          gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
-
-      - name: Record limited compilation diagnostics on failed build
-        if: failure()
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          source=Path('melehat-gradle-build.log')
-          if source.exists():
-              lines=source.read_text(errors='replace').splitlines()
-              matches=[]
-              for i,line in enumerate(lines):
-                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
-                      matches.append(i)
-              indexes=set()
-              for i in matches[:30]:
-                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
-              safe=[]
-              for i in sorted(indexes):
-                  line=lines[i]
-                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
-                      continue
-                  safe.append(f'{i+1}: {line[:350]}')
-              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
-                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
-          PY
-          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add staging/rooms/ci_build_errors_v1330.txt
-            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
-            git push origin HEAD:main || true
-          fi
+        run: gradle assembleRelease --stacktrace
 
       - name: Sign permanent release APK
         working-directory: melehat_build
@@ -616,7 +489,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ 1.3.30 room routing"
 
 
       - name: Verify APK package and signature
