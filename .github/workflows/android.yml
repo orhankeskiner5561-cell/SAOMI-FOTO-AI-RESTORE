@@ -160,6 +160,9 @@ jobs:
           grep -F 'Üye listesi oturumu yenilenemedi.' app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
           grep -F 'KANALLAR' "$ROOT"
           grep -F 'KANAL AÇ  +' "$ROOT"
+          grep -F 'val roomsContext = androidx.compose.ui.platform.LocalContext.current' "$ROOT"
+          grep -F 'MelehatRoomApi(roomsContext)' "$ROOT"
+          grep -F 'var result = fetch(session)' app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
           echo MELEHAT_ROOM_API_AND_UI_OK
           echo LOCKED_CORE_AND_UPDATER_OK
 
