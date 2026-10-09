@@ -241,7 +241,41 @@ jobs:
 
       - name: Build APK
         working-directory: melehat_build
-        run: gradle assembleRelease --stacktrace
+        run: |
+          set -o pipefail
+          gradle assembleRelease --stacktrace 2>&1 | tee ../melehat-gradle-build.log
+
+      - name: Record limited compilation diagnostics on failed build
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source=Path('melehat-gradle-build.log')
+          if source.exists():
+              lines=source.read_text(errors='replace').splitlines()
+              matches=[]
+              for i,line in enumerate(lines):
+                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
+                      matches.append(i)
+              indexes=set()
+              for i in matches[:30]:
+                  indexes.update(range(max(0,i-1),min(len(lines),i+4)))
+              safe=[]
+              for i in sorted(indexes):
+                  line=lines[i]
+                  if any(x in line.lower() for x in ('token=', 'password=', 'secret=', 'authorization:', 'apikey:', 'bearer ')):
+                      continue
+                  safe.append(f'{i+1}: {line[:350]}')
+              Path('staging/rooms/ci_build_errors_v1330.txt').write_text(
+                  '\n'.join(safe[:120]) + '\n',encoding='utf-8')
+          PY
+          if [ -s staging/rooms/ci_build_errors_v1330.txt ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add staging/rooms/ci_build_errors_v1330.txt
+            git commit -m "Record sanitized v1.3.30 Kotlin compilation diagnostics" || true
+            git push origin HEAD:main || true
+          fi
 
       - name: Sign permanent release APK
         working-directory: melehat_build
