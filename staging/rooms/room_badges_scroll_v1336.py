@@ -7,6 +7,7 @@ p = Path("app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
 s = p.read_text(encoding="utf-8")
 
 for imp in (
+    "import androidx.compose.foundation.background",
     "import androidx.compose.foundation.gestures.detectVerticalDragGestures",
     "import androidx.compose.ui.layout.onSizeChanged",
     "import androidx.compose.ui.platform.LocalDensity",
@@ -130,10 +131,16 @@ sub(
                                                 channelTrackHeightPx) {
                                                 detectVerticalDragGestures { change, dy ->
                                                     change.consume()
-                                                    val denominator =
+                                                    val track =
                                                         channelTrackHeightPx.toFloat().coerceAtLeast(1f)
+                                                    val fraction = track /
+                                                        (track + channelListScroll.maxValue)
+                                                    val thumb = (track * fraction)
+                                                        .coerceAtLeast(with(channelDensity) { 36.dp.toPx() })
+                                                        .coerceAtMost(track)
+                                                    val travel = (track - thumb).coerceAtLeast(1f)
                                                     channelListScroll.dispatchRawDelta(
-                                                        dy * channelListScroll.maxValue / denominator
+                                                        dy * channelListScroll.maxValue / travel
                                                     )
                                                 }
                                             }
