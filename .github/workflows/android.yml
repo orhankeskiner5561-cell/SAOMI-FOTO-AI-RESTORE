@@ -87,7 +87,11 @@ jobs:
         working-directory: melehat_build
         run: python3 ../member_startup_v1324.py
 
-      - name: Add channel rooms visual preview\n        working-directory: melehat_build\n        run: python3 ../channel_rooms_preview_v1326.py\n\n      - name: Set release version in same build
+      - name: Add channel rooms visual preview
+        working-directory: melehat_build
+        run: python3 ../channel_rooms_preview_v1326.py
+
+      - name: Set release version in same build
         working-directory: melehat_build
         run: |
           python3 - <<'PY'
