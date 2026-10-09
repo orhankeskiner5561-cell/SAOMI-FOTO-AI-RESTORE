@@ -109,15 +109,21 @@ jobs:
 
       - name: Add authorized common-room token and isolated LiveKit room state
         working-directory: melehat_build
-        run: python3 ../staging/rooms/common_livekit_v1330.py
+        run: |
+          set -o pipefail
+          python3 ../staging/rooms/common_livekit_v1330.py 2>&1 | tee -a ../melehat-stage.log
 
       - name: Add safe PTT channel switching and common-room migration
         working-directory: melehat_build
-        run: python3 ../staging/rooms/ptt_safe_room_switch_v1330.py
+        run: |
+          set -o pipefail
+          python3 ../staging/rooms/ptt_safe_room_switch_v1330.py 2>&1 | tee -a ../melehat-stage.log
 
       - name: Link approved room directory to real common and private audio entry
         working-directory: melehat_build
-        run: python3 ../staging/rooms/room_entry_ui_v1330.py
+        run: |
+          set -o pipefail
+          python3 ../staging/rooms/room_entry_ui_v1330.py 2>&1 | tee -a ../melehat-stage.log
 
       - name: Set release version in same build
         working-directory: melehat_build
@@ -251,11 +257,17 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           source=Path('melehat-gradle-build.log')
-          if source.exists():
-              lines=source.read_text(errors='replace').splitlines()
+          stage=Path('melehat-stage.log')
+          if source.exists() or stage.exists():
+              lines=[]
+              for f in (stage,source):
+                  if f.exists():
+                      lines += [f.name+': '+line for line in f.read_text(errors='replace').splitlines()]
               matches=[]
               for i,line in enumerate(lines):
-                  if line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or ' error: ' in line:
+                  if (line.startswith(('e: ', 'FAILURE:', '> Task :app:compile', 'Execution failed')) or
+                      ' error: ' in line or 'SystemExit:' in line or
+                      'anchor' in line.lower() or 'Traceback' in line):
                       matches.append(i)
               indexes=set()
               for i in matches[:30]:
