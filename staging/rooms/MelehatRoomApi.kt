@@ -1,6 +1,9 @@
 package com.saomi.telsiz.rooms
 
+import android.content.Context
 import com.saomi.telsiz.BuildConfig
+import com.saomi.telsiz.auth.SessionRefresher
+import com.saomi.telsiz.data.SessionStore
 import com.saomi.telsiz.auth.AuthSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -17,7 +20,9 @@ data class RoomRequest(val id: String, val roomId: String,
     val requesterId: String, val status: String)
 
 /** Staged: authenticated Supabase room operations; PTT remains unchanged. */
-class MelehatRoomApi {
+class MelehatRoomApi(context: Context) {
+    private val sessionStore = SessionStore(context.applicationContext)
+    private val sessionRefresher = SessionRefresher(context.applicationContext)
     private val http = OkHttpClient()
     private val root = BuildConfig.SUPABASE_URL.trimEnd('/')
     private val publishable = BuildConfig.SUPABASE_PUBLISHABLE_KEY
@@ -28,25 +33,52 @@ class MelehatRoomApi {
             .header("apikey", publishable)
             .header("Authorization", "Bearer " + session.accessToken)
 
-    private fun array(path: String, session: AuthSession): JSONArray {
-        http.newCall(auth(path, session).get().build()).execute().use { response ->
-            if (!response.isSuccessful) error("Sunucu sorgusu: " + response.code)
-            return JSONArray(response.body?.string().orEmpty())
+    // Always prefer the latest stored JWT. An old Compose session snapshot must
+    // not break room listings or owner approvals after an access-token refresh.
+    private suspend fun executeWithRefresh(
+        session: AuthSession,
+        build: (AuthSession) -> Request
+    ): String {
+        var active = sessionStore.load()?.takeIf { it.userId == session.userId } ?: session
+        for (attempt in 0..1) {
+            val request = build(active)
+            val (status, body) = http.newCall(request).execute().use { response ->
+                response.code to response.body?.string().orEmpty()
+            }
+            if (status == 401 && attempt == 0) {
+                active = sessionRefresher.refresh()
+                    ?: error("Oturum yenilenemedi. Lütfen tekrar giriş yapın.")
+                if (active.userId != session.userId) error("Oturum kimliği değişti.")
+                continue
+            }
+            if (status !in 200..299) {
+                val serverError = runCatching {
+                    JSONObject(body).optString("message").ifBlank {
+                        JSONObject(body).optString("msg")
+                    }
+                }.getOrDefault("")
+                error(serverError.ifBlank { "Sunucu sorgusu: $status" })
+            }
+            return body
         }
+        error("Oturum doğrulanamadı.")
     }
 
-    private fun rpc(name: String, session: AuthSession, data: JSONObject): String {
-        val request = auth("/rest/v1/rpc/" + name, session)
-            .header("Content-Type", "application/json")
-            .post(data.toString().toRequestBody(jsonType)).build()
-        http.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) {
-                val message = runCatching { JSONObject(body).optString("message") }.getOrDefault("")
-                error(message.ifBlank { "Sunucu işlemi: " + response.code })
-            }
-            return body.trim('"', ' ', '\n', '\r')
+    private suspend fun array(path: String, session: AuthSession): JSONArray {
+        val raw = executeWithRefresh(session) { fresh ->
+            auth(path, fresh).get().build()
         }
+        return JSONArray(raw)
+    }
+
+    private suspend fun rpc(name: String, session: AuthSession, data: JSONObject): String {
+        val raw = executeWithRefresh(session) { fresh ->
+            auth("/rest/v1/rpc/" + name, fresh)
+                .header("Content-Type", "application/json")
+                .post(data.toString().toRequestBody(jsonType))
+                .build()
+        }
+        return raw.trim('"', ' ', '\n', '\r')
     }
 
     suspend fun listRooms(session: AuthSession): Result<List<RoomListing>> =
