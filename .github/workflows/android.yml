@@ -107,6 +107,18 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/compact_main_ui_v1329.py
 
+      - name: Add authorized common-room token and isolated LiveKit room state
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/common_livekit_v1330.py
+
+      - name: Add safe PTT channel switching and common-room migration
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/ptt_safe_room_switch_v1330.py
+
+      - name: Link approved room directory to real common and private audio entry
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/room_entry_ui_v1330.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -115,8 +127,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 159', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.29"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 160', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.30"', t, count=1)
           p.write_text(t)
           PY
 
@@ -172,6 +184,18 @@ jobs:
           grep -F 'showLegacyChannelPicker' "$ROOT"
           if grep -F 'Text(profile.phone, style = MaterialTheme.typography.bodySmall)' "$ROOT"; then
             echo "Profile header still visible: failing visual validation"
+            exit 1
+          fi
+          grep -F 'ACTION_SWITCH_ROOM' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'roomSwitching || !ptt.isConnectedTo(channel.id)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'connectedChannelId == roomId' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'melehat-room-token' app/src/main/java/com/saomi/telsiz/voice/RoomTokenClient.kt
+          grep -F 'migrateDefaultRoomToCommonOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'ORTAK KANALA GİR' "$ROOT"
+          grep -F 'KANALA GİR' "$ROOT"
+          grep -F 'liveRoomName' "$ROOT"
+          if grep -F 'scope.launch { backend.joinChannel(session!!, c) }' "$ROOT"; then
+            echo 'Unexpected legacy direct member join in room selector'
             exit 1
           fi
           echo MELEHAT_ROOM_API_AND_UI_OK
@@ -257,8 +281,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.29 >/dev/null 2>&1 && { echo "Release v1.3.29 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.29 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.29" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+          gh release view v1.3.30 >/dev/null 2>&1 && { echo "Release v1.3.30 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.30 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.30" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
 
 
       - name: Verify APK package and signature
