@@ -95,6 +95,14 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/channel_room_ui_v1327.py
 
+      - name: Refresh expired member directory and room sessions
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/member_directory_refresh_v1328.py
+
+      - name: Put channel buttons near the top without modifying PTT
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/channel_room_two_buttons_v1328.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -103,8 +111,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 157', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.27"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 158', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.28"', t, count=1)
           p.write_text(t)
           PY
 
@@ -148,6 +156,10 @@ jobs:
           grep -F 'KATILMA İSTEĞİ GÖNDER' "$ROOT"
           grep -F 'KANALI OLUŞTUR' "$ROOT"
           grep -F 'KABUL ET' "$ROOT"
+          grep -F 'sessionRefresher.refresh()' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
+          grep -F 'Üye listesi oturumu yenilenemedi.' app/src/main/java/com/saomi/telsiz/data/BackendApi.kt
+          grep -F 'KANALLAR' "$ROOT"
+          grep -F 'KANAL AÇ  +' "$ROOT"
           echo MELEHAT_ROOM_API_AND_UI_OK
           echo LOCKED_CORE_AND_UPDATER_OK
 
@@ -231,8 +243,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.27 >/dev/null 2>&1 && { echo "Release v1.3.27 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.27 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.27" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
+          gh release view v1.3.28 >/dev/null 2>&1 && { echo "Release v1.3.28 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.28 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.28" --notes "MELEHAT TELSIZ uygulama ici guncelleme surumu 1.3.27"
 
 
       - name: Verify APK package and signature
