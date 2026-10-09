@@ -223,7 +223,7 @@ jobs:
           grep -F 'REDDET / KAPAT' "$ROOT"
           grep -F 'melehat_video_start' app/src/main/java/com/saomi/telsiz/video/VideoCallApi.kt
           grep -F 'video-' ../staging/video/VideoCallActivity.kt || true
-          grep -F 'val track = event.track' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
+          grep -F 'is RoomEvent.TrackSubscribed -> updateRemoteTiles(videoRoom)' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
           grep -F 'automaticCloseStarted' app/src/main/java/com/saomi/telsiz/video/VideoCallActivity.kt
           grep -F 'MelehatPendingRequestBadge' "$ROOT"
           grep -F 'channelListScroll.dispatchRawDelta' "$ROOT"
