@@ -175,11 +175,15 @@ class VideoCallActivity : ComponentActivity() {
                 launch {
                     videoRoom.events.collect { event ->
                         when (event) {
-                            is RoomEvent.TrackSubscribed ->
-                                if (event.track is VideoTrack && !tracks.contains(event.track))
-                                    tracks.add(event.track)
-                            is RoomEvent.TrackUnsubscribed ->
-                                if (event.track is VideoTrack) tracks.remove(event.track)
+                            is RoomEvent.TrackSubscribed -> {
+                                val track = event.track
+                                if (track is VideoTrack && !tracks.contains(track))
+                                    tracks.add(track)
+                            }
+                            is RoomEvent.TrackUnsubscribed -> {
+                                val track = event.track
+                                if (track is VideoTrack) tracks.remove(track)
+                            }
                             is RoomEvent.ParticipantDisconnected -> updateRemoteTracks(videoRoom)
                             is RoomEvent.Disconnected -> status = "Görüşme bağlantısı kesildi."
                             else -> Unit
