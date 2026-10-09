@@ -174,6 +174,25 @@ class MelehatRoomApi(context: Context) {
             }
         }
 
+    /**
+     * Presence is scoped to the actual active LiveKit room, not to approved
+     * channel membership (a member can belong to several private rooms).
+     */
+    suspend fun activeRoomByUser(session: AuthSession): Result<Map<String, String>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val arr = array("/rest/v1/melehat_active_room_users?select=user_id,room_id", session)
+                buildMap {
+                    for (i in 0 until arr.length()) {
+                        val item = arr.getJSONObject(i)
+                        val userId = item.optString("user_id")
+                        val roomId = item.optString("room_id")
+                        if (userId.isNotBlank() && roomId.isNotBlank()) put(userId, roomId)
+                    }
+                }
+            }
+        }
+
     suspend fun deleteRoom(session: AuthSession, roomId: String): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
