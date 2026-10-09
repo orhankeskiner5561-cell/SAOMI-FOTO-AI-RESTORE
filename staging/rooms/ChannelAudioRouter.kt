@@ -12,6 +12,7 @@ interface MultiRoomTransport {
     suspend fun connect(channelId: String, receiveOnly: Boolean): Boolean
     suspend fun disconnect(channelId: String)
     suspend fun microphone(channelId: String, enabled: Boolean): Boolean
+    suspend fun isConnected(channelId: String): Boolean
 }
 
 /** Server authorization must independently confirm current room membership. */
@@ -93,7 +94,7 @@ class ChannelAudioRouter(
 
     suspend fun ptt(pressed: Boolean): Boolean = mutex.withLock {
         val channelId = selected ?: return@withLock false
-        if (pressed && !access.allowed(channelId)) return@withLock false
+        if (pressed && (!access.allowed(channelId) || !transport.isConnected(channelId))) return@withLock false
         // Never send microphone traffic to a receive-only background room.
         val ok = transport.microphone(channelId, pressed)
         if (ok) transmitting = pressed
@@ -102,7 +103,7 @@ class ChannelAudioRouter(
 
     suspend fun refreshMembership() = mutex.withLock {
         for (roomId in listening.toList()) {
-            if (!access.allowed(roomId)) {
+            if (!access.allowed(roomId) || !transport.isConnected(roomId)) {
                 transport.disconnect(roomId)
                 listening.remove(roomId)
                 retained.remove(roomId)
