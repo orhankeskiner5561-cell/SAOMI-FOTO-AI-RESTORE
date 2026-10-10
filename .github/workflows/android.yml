@@ -211,6 +211,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/ptt/external_key_safety_v1354.py
 
+      - name: Prevent un-releasable dark-screen Volume+ PTT
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/screenoff_failclosed_v1355.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -219,8 +223,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 184', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.54"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 185', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.55"', t, count=1)
           p.write_text(t)
           PY
 
@@ -444,6 +448,12 @@ jobs:
           grep -F 'Intent.ACTION_SCREEN_OFF' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
           grep -F 'fun history(context: Context)' app/src/main/java/com/saomi/telsiz/service/ExternalPttDiagnostics.kt
           grep -F 'Son olayların geçmişi' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'SCREEN_OFF_KEY_BLOCKED_NO_RELIABLE_UP' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          grep -F 'SCREEN_OFF_PTT_BLOCKED_FOR_SAFETY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'SCREEN_OFF_SERVICE_FORCED_RELEASE' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'SCREEN_OFF_MIC_BLOCKED_FOR_SAFETY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'mandaldan yayın GÜVENLİK NEDENİYLE ENGELLENDİ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          echo MELEHAT_1355_SAFE_SCREENOFF_BLOCK_OK
           echo MELEHAT_EXTERNAL_PTT_REPEATS_AND_FAILSAFE_OK
           echo MELEHAT_EXTERNAL_PTT_SETTINGS_READY
           echo MELEHAT_EXTERNAL_VOLUME_PTT_SOURCE_OK
@@ -539,8 +549,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.54 >/dev/null 2>&1 && { echo "Release v1.3.54 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.54 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.54" --notes "MELEHAT TELSIZ 1.3.54: Volume+ longer holds with heartbeat on repeated key events, independent PTT service fail-safe auto-release, separate screen on/off logs and persistent diagnostics. Safety cap 20 seconds without repeat. Android lock-screen compatibility requires on-device test."
+          gh release view v1.3.55 >/dev/null 2>&1 && { echo "Release v1.3.55 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.55 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.55" --notes "MELEHAT TELSIZ 1.3.55: Safety release. On screen-off physical Volume+ KEY_UP is missing on tested Xiaomi Android 16, so screen-off Volume+ microphone transmit is intentionally disabled to prevent an open mic after button release. Lit-screen Volume+ and normal PTT remain; screen-off key diagnostics continue. Reliable dark-screen physical PTT requires separate supported hardware/event source."
 
 
       - name: Verify APK package and signature
