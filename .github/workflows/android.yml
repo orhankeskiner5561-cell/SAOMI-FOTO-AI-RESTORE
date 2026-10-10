@@ -195,6 +195,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/launcher/apply_yellow_launcher_v1350.py
 
+      - name: Add optional external Volume+ mandal with release watchdog
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/external_volume_ptt_v1351.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -203,8 +207,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 180', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.50"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 181', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.51"', t, count=1)
           p.write_text(t)
           PY
 
@@ -402,6 +406,15 @@ jobs:
             exit 1
           fi
           echo MELEHAT_ROOM_API_AND_UI_OK
+          test -s app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          test -s app/src/main/res/xml/volume_ptt_accessibility.xml
+          grep -F 'android:canRequestFilterKeyEvents="true"' app/src/main/res/xml/volume_ptt_accessibility.xml
+          grep -F 'VolumePttAccessibilityService' app/src/main/AndroidManifest.xml
+          grep -F 'RELEASE_TIMEOUT_MS = 1800L' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          grep -F 'ACTION_PTT_UP' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          grep -F 'Ses + ile basılı konuş' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+          echo MELEHAT_EXTERNAL_VOLUME_PTT_SOURCE_OK
           echo LOCKED_CORE_AND_UPDATER_OK
 
       - name: Export generated AppRoot for direct UI source
@@ -494,8 +507,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.50 >/dev/null 2>&1 && { echo "Release v1.3.50 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.50 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.50" --notes "MELEHAT TELSIZ 1.3.50: Approved yellow-orange MELE-HAT TELSIZ launcher icon. All v1.3.49 PTT, LiveKit, audio, channel, video and update features preserved."
+          gh release view v1.3.51 >/dev/null 2>&1 && { echo "Release v1.3.51 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.51 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.51" --notes "MELEHAT TELSIZ 1.3.51: Opt-in physical Volume+ hold-to-talk via Accessibility, release guard, compatibility settings. Preserves 1.3.50 icon, LiveKit PTT, selected channels, video and signing. Android device test required."
 
 
       - name: Verify APK package and signature
