@@ -175,6 +175,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/audio/media_coexistence_v1344.py
 
+      - name: Recover MELEHAT after Android background process eviction
+        working-directory: melehat_build
+        run: python3 ../staging/background/sticky_recovery_v1345.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -183,8 +187,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 174', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.44"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 175', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.45"', t, count=1)
           p.write_text(t)
           PY
 
@@ -312,6 +316,13 @@ jobs:
           grep -F 'Spacer(Modifier.height(120.dp))' "$ROOT"
           grep -F 'Box(Modifier.size(210.dp).offset(y = 60.dp), contentAlignment = Alignment.Center)' "$ROOT"
           grep -F 'AudioType.MediaAudioType()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'val resolvedAction = intent?.action ?: if (store.isRadioEnabled()) ACTION_START else null' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'return START_STICKY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'onTaskRemoved(rootIntent: Intent?)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'android:stopWithTask="false"' "$MAN"
+          grep -F 'explainBackgroundBatteryOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'Kısıtlama yok' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+
           grep -F 'audioHandler = NoAudioHandler()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'disableAudioPrewarming = true' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'setMicrophoneEnabled(enabled)' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
@@ -424,8 +435,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.44 >/dev/null 2>&1 && { echo "Release v1.3.44 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.44 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.44" --notes "MELEHAT TELSIZ 1.3.44: move PTT circle 60dp down, keeping top controls and bottom cards fixed; preserve all existing PTT and room actions"
+          gh release view v1.3.45 >/dev/null 2>&1 && { echo "Release v1.3.45 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.45 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.45" --notes "MELEHAT TELSIZ 1.3.45: move PTT circle 60dp down, keeping top controls and bottom cards fixed; preserve all existing PTT and room actions"
 
 
       - name: Verify APK package and signature
