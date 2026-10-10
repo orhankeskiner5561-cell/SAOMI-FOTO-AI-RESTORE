@@ -9,6 +9,7 @@ access=root/"service/VolumePttAccessibilityService.kt"
 main=root/"MainActivity.kt"
 ui=root/"compat/DeviceCompatibilityActivity.kt"
 diag=root/"service/NativeVolumeProbe.kt"
+svc=root/"service/PttForegroundService.kt"
 if diag.exists(): raise SystemExit("NativeVolumeProbe already exists")
 
 def modify(path,old,new,count=1):
@@ -138,6 +139,27 @@ modify(main,
             event != null &&
             com.saomi.telsiz.service.NativeVolumeProbe.observe(this,event)) return true
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && volumePttDown) {''')
+
+# Never let a parallel Shizuku raw listener start transmission while a
+# no-audio Android-native key experiment is running.
+modify(svc,
+'''    private fun rawPttInput(event: String) {
+        if (!rawPttEnabled || !ShizukuRawPttState.enabled) return''',
+'''    private fun rawPttInput(event: String) {
+        if (NativeVolumeProbe.isActive(this)) {
+            rawPttRelease("ANDROID_NATIVE_DIAG_NO_AUDIO")
+            return
+        }
+        if (!rawPttEnabled || !ShizukuRawPttState.enabled) return''')
+modify(svc,
+'''    private fun rawPttEnable() {
+        if (!started || !store.isRadioEnabled() || roomSwitching ||''',
+'''    private fun rawPttEnable() {
+        if (NativeVolumeProbe.isActive(this)) {
+            ExternalPttDiagnostics.record(this,"key","NATIVE_DIAG_BLOCKS_SHIZUKU_PTT")
+            return
+        }
+        if (!started || !store.isRadioEnabled() || roomSwitching ||''')
 
 # Keep the experiment clearly separated from the Shizuku PTT and the normal
 # Android accessibility mandal. Do not enable it while Shizuku PTT is active.
