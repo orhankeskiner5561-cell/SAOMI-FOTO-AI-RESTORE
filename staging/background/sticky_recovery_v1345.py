@@ -66,6 +66,56 @@ if 'android:foregroundServiceType="microphone"' not in m:
     raise SystemExit("MELEHAT 1345 protected microphone FGS type missing")
 manifest.write_text(m,encoding="utf-8")
 
+
+# Device makers (especially Xiaomi/MIUI/HyperOS) may terminate even an active
+# foreground service. Show a one-time, optional Android battery-settings guide
+# while the Activity is actually in the foreground. Do not silently request
+# exemptions or modify system settings without user consent.
+activity = base / "java/com/saomi/telsiz/MainActivity.kt"
+a = activity.read_text(encoding="utf-8")
+existing = '''        render()
+    }
+
+    override fun onNewIntent(intent: Intent) {'''
+updated = '''        render()
+        explainBackgroundBatteryOnce()
+    }
+
+    private fun explainBackgroundBatteryOnce() {
+        if (!LocalStore(this).isRadioEnabled()) return
+        val power = getSystemService(android.os.PowerManager::class.java)
+        if (power.isIgnoringBatteryOptimizations(packageName)) return
+        val prefs = getSharedPreferences("melehat_background_help", MODE_PRIVATE)
+        if (prefs.getBoolean("v1345_shown_once", false)) return
+        prefs.edit().putBoolean("v1345_shown_once", true).apply()
+        android.app.AlertDialog.Builder(this)
+            .setTitle("MELEHAT arka planda çevrimiçi kalsın")
+            .setMessage(
+                "Telsiz anahtarı açıkken Android'in uygulamayı uykuya almasını " +
+                "önlemek için MELEHAT > Pil bölümünde Kısıtlama yok / Sınırsız " +
+                "seçin. Xiaomi telefonlarda ayrıca Otomatik başlatmaya izin " +
+                "verin. Bu izinleri telefonun ayarlarından siz açabilirsiniz."
+            )
+            .setPositiveButton("Uygulama ayarlarını aç") { _, _ ->
+                runCatching {
+                    startActivity(android.content.Intent(
+                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        android.net.Uri.parse("package:" + packageName)
+                    ))
+                }
+            }
+            .setNegativeButton("Sonra", null)
+            .show()
+    }
+
+    override fun onNewIntent(intent: Intent) {'''
+if a.count(existing) != 1:
+    raise SystemExit("MELEHAT 1345 Activity onCreate anchor missing")
+a=a.replace(existing,updated,1)
+assert "PttForegroundService.ACTION_START" in a
+assert "sendServiceAction" in a
+activity.write_text(a,encoding="utf-8")
+
 # Force-stop and some OEM battery termination cannot be bypassed by apps.
 # We keep all background permissions unchanged; no abusive alarms, phantom
 # Activities, or recurring background microphone FGS launches.
