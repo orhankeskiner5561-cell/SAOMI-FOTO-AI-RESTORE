@@ -191,6 +191,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/ptt/real_remote_audio_waves_v1349.py
 
+      - name: Apply approved MELE-HAT yellow launcher icon
+        working-directory: melehat_build
+        run: python3 ../staging/launcher/apply_yellow_launcher_v1350.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -199,8 +203,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 179', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.49"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 180', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.50"', t, count=1)
           p.write_text(t)
           PY
 
@@ -239,6 +243,9 @@ jobs:
           test -s "$PATHS"
           grep -F 'external-files-path' "$PATHS"
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+          grep -F 'android:icon="@drawable/melehat_launcher"' "$MAN"
+          grep -F 'android:roundIcon="@drawable/melehat_launcher"' "$MAN"
+          test -s app/src/main/res/drawable-nodpi/melehat_launcher.webp
           grep -R -F 'class LiveKitPttClient' app/src/main/java
           grep -R -F 'class MelehatRoomApi' app/src/main/java
           grep -F 'KATILMA İSTEĞİ GÖNDER' "$ROOT"
@@ -487,8 +494,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.49 >/dev/null 2>&1 && { echo "Release v1.3.49 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.49 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.49" --notes "MELEHAT TELSIZ 1.3.49: Coffee-color idle PTT and actual remote LiveKit audio-level green waves; preserved radio and channel features"
+          gh release view v1.3.50 >/dev/null 2>&1 && { echo "Release v1.3.50 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.50 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.50" --notes "MELEHAT TELSIZ 1.3.50: Approved yellow-orange MELE-HAT TELSIZ launcher icon. All v1.3.49 PTT, LiveKit, audio, channel, video and update features preserved."
 
 
       - name: Verify APK package and signature
