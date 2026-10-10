@@ -244,12 +244,15 @@ replace(svc, '''    private var roomSwitchJob: Job? = null''',
 replace(svc, '''            ACTION_SWITCH_ROOM -> {
                 val roomId = intent?.getStringExtra(EXTRA_ROOM_ID).orEmpty()''',
 '''            ACTION_SWITCH_ROOM -> {
-                // Never keep a physical-key hold during a channel change.
-                if (externalHeld) {
-                    ExternalPttDiagnostics.record(this,"service","ROOM_SWITCH_RELEASE")
-                    clearExternalGuard()
-                }
                 val roomId = intent?.getStringExtra(EXTRA_ROOM_ID).orEmpty()''')
+replace(svc, '''                    roomSwitching = true
+                    pttHeld = false''',
+'''                    if (externalHeld) {
+                        ExternalPttDiagnostics.record(this,"service","ROOM_SWITCH_RELEASE")
+                        clearExternalGuard()
+                    }
+                    roomSwitching = true
+                    pttHeld = false''')
 replace(svc, '''            ACTION_STOP -> {
                 started = false''',
 '''            ACTION_STOP -> {
@@ -293,6 +296,11 @@ replace(svc, '''                    scope.launch { endTransmit() }
             }
 
             ACTION_TOGGLE_PTT -> {''')
+replace(svc, '''                    if (transmitting || pttHeld) {
+                        pttHeld = false''',
+'''                    if (transmitting || pttHeld) {
+                        if (externalHeld) clearExternalGuard()
+                        pttHeld = false''')
 replace(svc, '''    override fun onDestroy() {
         roomSwitchJob?.cancel()''',
 '''    override fun onDestroy() {
