@@ -17,6 +17,9 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import java.util.Locale
 
 /**
@@ -35,7 +38,23 @@ class DeviceCompatibilityActivity : Activity() {
             orientation = LinearLayout.VERTICAL
             setPadding(20, 24, 20, 28)
         }
-        setContentView(ScrollView(this).apply { addView(panel) })
+        // Android 15/16 draws apps edge-to-edge, including behind clock,
+        // camera cutout and gesture navigation. Explicitly apply safe insets.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val scroll = ScrollView(this).apply {
+            addView(panel)
+            clipToPadding = false
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or
+                    WindowInsetsCompat.Type.displayCutout()
+            )
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom)
+            insets
+        }
+        setContentView(scroll)
+        ViewCompat.requestApplyInsets(scroll)
         render()
     }
 
@@ -128,7 +147,8 @@ class DeviceCompatibilityActivity : Activity() {
     private fun render() {
         panel.removeAllViews()
         val g = group()
-        line("MELEHAT • Telefon Uyumluluk Kontrolü", 21f, true)
+        // Short, responsive heading on smaller phone widths.
+        line("MELEHAT • Uyumluluk Kontrolü", 19f, true)
         line("Marka: " + Build.MANUFACTURER + " / " + Build.BRAND +
             "\nModel: " + Build.MODEL +
             "\nAndroid: " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")" +
