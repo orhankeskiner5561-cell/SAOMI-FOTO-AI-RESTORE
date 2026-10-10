@@ -124,6 +124,8 @@ patch(svc,'    private var shizukuRawProbe: ShizukuRawKeyProbe? = null',
     }
     private fun rawPttAuthorized(): Boolean =
         rawPttEnabled && rawPttHeld && ShizukuRawPttState.enabled &&
+            getSharedPreferences("melehat_external_ptt",MODE_PRIVATE)
+                .getBoolean("enabled",false) &&
             shizukuRawProbe?.isRunning() == true
 
     private fun rawPttInput(event: String) {
@@ -131,6 +133,8 @@ patch(svc,'    private var shizukuRawProbe: ShizukuRawKeyProbe? = null',
         when (event) {
             "DOWN" -> {
                 if (rawPttHeld || !started || !store.isRadioEnabled() ||
+                    !getSharedPreferences("melehat_external_ptt",MODE_PRIVATE)
+                        .getBoolean("enabled",false) ||
                     roomSwitching || transmitting || pttHeld ||
                     shizukuRawProbe?.isRunning() != true) {
                     ExternalPttDiagnostics.record(this,"shizuku","RAW_DOWN_NOT_ARMED")
@@ -295,6 +299,10 @@ patch(ui,'''        line("ÖNEMLİ: Bu Xiaomi / Android 16 cihazında ekran kara
              "güvenlik nedeniyle engellidir. Gerçek basma-bırakma sinyali " +
              "olan Shizuku mandalını ayrıca etkinleştirebilirsiniz.")
         line("ÖNEMLİ: Bu Xiaomi / Android 16 cihazında ekran karanlıkken " +''')
+patch(ui,'''             "uyumlu bir Bluetooth PTT kumandası gereklidir.")''',
+'''             "Shizuku bağlantısı varsa ham DOWN/UP ile test edilerek " +
+             "karanlık ekran PTT kullanılabilir.")''')
+
 # Guard old hard-coded warning, retained as historical legacy-only guidance:
 patch(ui,'''             "mandaldan yayın GÜVENLİK NEDENİYLE ENGELLENDİ. " +''',
 '''             "ERİŞİLEBİLİRLİK mandalından yayın engellendi. " +''')
