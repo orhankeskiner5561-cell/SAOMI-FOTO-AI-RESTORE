@@ -19,6 +19,20 @@ if "return START_STICKY" not in s:
     raise SystemExit("MELEHAT 1345: START_STICKY foreground-service contract absent")
 s=s.replace(original, restored, 1)
 
+# Kotlin used to smart-cast intent in when(intent?.action). Now that null
+# service restarts have their own resolved action, room switch extras must
+# access the optional Intent safely as well.
+for before, after in (
+    ('val roomId = intent.getStringExtra(EXTRA_ROOM_ID).orEmpty()',
+     'val roomId = intent?.getStringExtra(EXTRA_ROOM_ID).orEmpty()'),
+    ('val roomName = intent.getStringExtra(EXTRA_ROOM_NAME).orEmpty()',
+     'val roomName = intent?.getStringExtra(EXTRA_ROOM_NAME).orEmpty()'),
+):
+    if s.count(before) != 1:
+        raise SystemExit("MELEHAT 1345 channel switch Intent anchor missing")
+    s=s.replace(before,after,1)
+
+
 # The task can be swiped from Android Recent Apps while the foreground
 # service remains active. Don't call stopSelf, and don't flip radioOff.
 anchor = '    override fun onBind(intent: Intent?): IBinder? = null'
