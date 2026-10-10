@@ -179,6 +179,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/background/sticky_recovery_v1345.py
 
+      - name: Configure brand-aware Android compatibility guidance
+        working-directory: melehat_build
+        run: python3 ../staging/compat/integrate_device_compatibility_v1346.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -187,8 +191,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 175', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.45"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 176', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.46"', t, count=1)
           p.write_text(t)
           PY
 
@@ -322,7 +326,19 @@ jobs:
           grep -F 'return START_STICKY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'onTaskRemoved(rootIntent: Intent?)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'android:stopWithTask="false"' "$MAN"
-          grep -F 'explainBackgroundBatteryOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'DeviceCompatibilityActivity' "$MAN"
+          grep -F 'offerBrandCompatibilityCheckOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'Telefon Uyumluluğu' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'Settings.ACTION_APP_NOTIFICATION_SETTINGS' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'BLUETOOTH_CONNECT' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'Xiaomi / Redmi / POCO' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'Samsung' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'OPPO / realme / OnePlus' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'vivo / iQOO' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'Huawei / Honor' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'offerBrandCompatibilityCheckOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
           grep -F 'Kısıtlama yok' app/src/main/java/com/saomi/telsiz/MainActivity.kt
 
           grep -F 'audioHandler = NoAudioHandler()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
@@ -437,8 +453,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.45 >/dev/null 2>&1 && { echo "Release v1.3.45 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.45 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.45" --notes "MELEHAT TELSIZ 1.3.45: move PTT circle 60dp down, keeping top controls and bottom cards fixed; preserve all existing PTT and room actions"
+          gh release view v1.3.46 >/dev/null 2>&1 && { echo "Release v1.3.46 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.46 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.46" --notes "MELEHAT TELSIZ 1.3.46: move PTT circle 60dp down, keeping top controls and bottom cards fixed; preserve all existing PTT and room actions"
 
 
       - name: Verify APK package and signature
