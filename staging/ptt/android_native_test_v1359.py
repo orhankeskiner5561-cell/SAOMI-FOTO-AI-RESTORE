@@ -196,7 +196,7 @@ for needle,path in (
     ("NativeVolumeProbe.observe(this",main),
     ("ANDROID YEREL TUŞ TESTİNİ BAŞLAT",ui),
     ("ANDROID_ONLY_DOWN_",diag),
-    ("ANDROID_ONLY_UP_",diag),
+    ("ORPHAN_UP_",diag),
     ("SCREEN_OFF",diag),
 ):
     if needle not in path.read_text(encoding="utf-8"):
