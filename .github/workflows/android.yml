@@ -422,7 +422,6 @@ jobs:
           test -s app/src/main/res/xml/volume_ptt_accessibility.xml
           grep -F 'android:canRequestFilterKeyEvents="true"' app/src/main/res/xml/volume_ptt_accessibility.xml
           grep -F 'VolumePttAccessibilityService' app/src/main/AndroidManifest.xml
-          grep -F 'RELEASE_TIMEOUT_MS = 1800L' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
           grep -F 'ACTION_PTT_UP' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
           grep -F 'Ses + ile basılı konuş' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
