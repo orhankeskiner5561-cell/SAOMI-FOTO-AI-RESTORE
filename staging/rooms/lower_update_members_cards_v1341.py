@@ -11,7 +11,7 @@ if s.count(anchor) != 1:
 # 12 dp increases only the gap below the PTT button.
 s = s.replace(anchor, '''            Spacer(Modifier.height(12.dp))
 ''' + anchor, 1)
-assert "Text(\"ÜYELER\"" in s
+assert "showMembers = true" in s
 assert "🟢 GÜNCEL" in s
 assert "Text(\"Telsiz durumu\"" in s
 assert "Text(\"Kanala Gir\")" not in s
