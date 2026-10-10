@@ -381,7 +381,7 @@ jobs:
           grep -F 'WindowInsetsCompat.Type.displayCutout()' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'MELEHAT • Uyumluluk Kontrolü' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'offerBrandCompatibilityCheckOnce()' app/src/main/java/com/saomi/telsiz/MainActivity.kt
-          grep -F 'Telefon Uyumluluğu' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'Dış Mandal Ayarları' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'Settings.ACTION_APP_NOTIFICATION_SETTINGS' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
