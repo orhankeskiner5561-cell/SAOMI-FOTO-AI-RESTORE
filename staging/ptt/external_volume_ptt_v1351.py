@@ -223,7 +223,7 @@ for preserved in (
     'WindowInsetsCompat.Type.displayCutout()',
     'Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT',
     'line("MELEHAT • Uyumluluk Kontrolü", 19f, true)',
-    'action("MELEHAT\\'a geri dön")'
+    'Settings.ACTION_ACCESSIBILITY_SETTINGS',
 ):
     if preserved not in s: raise SystemExit("v1351: Missing compatibility feature: "+preserved)
 compat.write_text(s, encoding="utf-8")
@@ -242,5 +242,5 @@ for protect in (
 assert "VolumePttAccessibilityService" not in core
 assert 'android:foregroundServiceType="microphone"' in m
 assert 'android:stopWithTask="false"' in m
-assert "com.melehat.telsiz" in (base.parent / "build.gradle.kts").read_text()
+assert "com.melehat.telsiz" in (base.parent.parent / "build.gradle.kts").read_text()
 print("MELEHAT_1351_EXTERNAL_VOLUME_PTT_READY")
