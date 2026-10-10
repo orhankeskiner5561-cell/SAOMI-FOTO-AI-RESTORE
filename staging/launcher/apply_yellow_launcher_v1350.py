@@ -14,14 +14,14 @@ out.write_bytes(bitmap)
 
 manifest = Path("app/src/main/AndroidManifest.xml")
 xml = manifest.read_text(encoding="utf-8")
-m = re.search(r"<application\\b[^>]*>", xml, flags=re.S)
+m = re.search(r"<application\b[^>]*>", xml, flags=re.S)
 if not m:
     raise SystemExit("Android application manifest node not found")
 tag = m.group(0)
 for attr in ("android:icon", "android:roundIcon"):
     replacement = f'{attr}="@drawable/melehat_launcher"'
-    if re.search(r'\\b' + attr + r'\\s*=\\s*"[^"]*"', tag):
-        tag = re.sub(r'\\b' + attr + r'\\s*=\\s*"[^"]*"', replacement, tag, count=1)
+    if re.search(r'\b' + attr + r'\s*=\s*"[^"]*"', tag):
+        tag = re.sub(r'\b' + attr + r'\s*=\s*"[^"]*"', replacement, tag, count=1)
     else:
         tag = tag[:-1] + " " + replacement + ">"
 xml = xml[:m.start()] + tag + xml[m.end():]
