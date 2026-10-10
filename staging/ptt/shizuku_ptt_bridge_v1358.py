@@ -206,9 +206,7 @@ patch(svc,'    private var shizukuRawProbe: ShizukuRawKeyProbe? = null',
         ExternalPttDiagnostics.record(this,"shizuku","RAW_MODE_ARMED")
     }
 
-    private companion object {
-        const val RAW_MAX_HOLD_MS = 30000L
-    }''')
+    private val RAW_MAX_HOLD_MS = 30000L''')
 
 # Do not let the v1.3.55 forced-release receiver kill raw-mode PTT when the
 # display transitions to off. Its protection still works for legacy inputs.
