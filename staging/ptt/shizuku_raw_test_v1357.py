@@ -201,6 +201,7 @@ patch(compat,
             val directory=java.io.File(filesDir,"shizuku")
             directory.mkdirs()
             val dst=java.io.File(directory,name)
+            if (dst.exists() && !dst.delete()) error("Could not replace old file")
             contentResolver.openInputStream(data.data!!)?.use { source ->
                 dst.outputStream().use { output -> source.copyTo(output) }
             } ?: error("Unable to open selected document")
