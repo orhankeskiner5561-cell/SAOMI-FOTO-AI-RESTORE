@@ -497,6 +497,7 @@ jobs:
           grep -F 'NATIVE_DIAG_BLOCKS_SHIZUKU_PTT' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'SHIZUKU DIŞ MANDALI AÇ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'SCREEN_OFF_PTT_BLOCKED_FOR_SAFETY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'NativeVolumeProbe.isActive(this)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           echo MELEHAT_1359_NATIVE_ONLY_TEST_OK
           echo MELEHAT_1358_RAW_PTT_SAFETY_OK
           echo MELEHAT_1357_SHIZUKU_DIAG_ONLY_OK
