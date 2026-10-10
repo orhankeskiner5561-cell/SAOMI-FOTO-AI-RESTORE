@@ -227,6 +227,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/ptt/shizuku_ptt_bridge_v1358.py
 
+      - name: Android-only physical Volume+ diagnostic (no Shizuku, no microphone)
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/android_native_test_v1359.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -235,8 +239,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 188', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.58"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 189', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.59"', t, count=1)
           p.write_text(t)
           PY
 
@@ -485,6 +489,15 @@ jobs:
           grep -F 'SHIZUKU DIŞ MANDALI AÇ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'SCREEN_OFF_KEY_BLOCKED_NO_RELIABLE_UP' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+          test -s app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
+          grep -F 'ANDROID_ONLY_DOWN_' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
+          grep -F 'ANDROID_ONLY_TEST_START_180S_NO_MIC' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
+          grep -F 'NativeVolumeProbe.observe(this,event)' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          grep -F 'ANDROID YEREL TUŞ TESTİNİ BAŞLAT' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'NATIVE_DIAG_BLOCKS_SHIZUKU_PTT' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'SHIZUKU DIŞ MANDALI AÇ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'SCREEN_OFF_PTT_BLOCKED_FOR_SAFETY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          echo MELEHAT_1359_NATIVE_ONLY_TEST_OK
           echo MELEHAT_1358_RAW_PTT_SAFETY_OK
           echo MELEHAT_1357_SHIZUKU_DIAG_ONLY_OK
           echo MELEHAT_1356_SINGLE_VOLUME_OWNER_OK
@@ -584,8 +597,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.58 >/dev/null 2>&1 && { echo "Release v1.3.58 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.58 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.58" --notes "MELEHAT TELSIZ 1.3.58: Opt-in Shizuku raw Volume+ PTT after 3 successful Xiaomi Android 16 screen-off DOWN/UP tests. Source-verified key presses drive the existing secured LiveKit PTT selected channel, release on UP / Shizuku exit / channel switch / radio stop, independent bounded 30s safety cap. Legacy accessibility screen-off PTT remains blocked. Requires real two-phone release-latency verification."
+          gh release view v1.3.59 >/dev/null 2>&1 && { echo "Release v1.3.59 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.59 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.59" --notes "MELEHAT TELSIZ 1.3.59: Android-only native Volume+ key UP reliability diagnostic without Shizuku or ADB. Opt-in 180-second no-microphone test on Xiaomi dark screen; counters for screen-off DOWN/UP/orphan keys, persistent timestamps, suppress PTT during diagnostic. Existing Shizuku PTT, LiveKit, channels, signatures and screen-off guard preserved."
 
 
       - name: Verify APK package and signature
