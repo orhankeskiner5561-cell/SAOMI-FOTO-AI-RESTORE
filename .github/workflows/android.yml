@@ -317,6 +317,8 @@ jobs:
           grep -F 'Box(Modifier.size(210.dp).offset(y = 60.dp), contentAlignment = Alignment.Center)' "$ROOT"
           grep -F 'AudioType.MediaAudioType()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'val resolvedAction = intent?.action ?: if (store.isRadioEnabled()) ACTION_START else null' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'intent?.getStringExtra(EXTRA_ROOM_ID)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'intent?.getStringExtra(EXTRA_ROOM_NAME)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'return START_STICKY' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'onTaskRemoved(rootIntent: Intent?)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'android:stopWithTask="false"' "$MAN"
