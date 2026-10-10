@@ -27,6 +27,10 @@ s=live.read_text(encoding="utf-8")
 import_anchor='import io.livekit.android.room.Room'
 if s.count(import_anchor) != 1: raise SystemExit("1349: original LiveKit Room import changed")
 s=s.replace(import_anchor,import_anchor+"\nimport io.livekit.android.room.participant.RemoteParticipant",1)
+if "import kotlinx.coroutines.isActive" not in s:
+    coroutines_anchor="import kotlinx.coroutines.launch"
+    if s.count(coroutines_anchor)!=1:raise SystemExit("1349: Coroutine imports have changed")
+    s=s.replace(coroutines_anchor,coroutines_anchor+"\nimport kotlinx.coroutines.isActive",1)
 anchor='    private var eventJob: Job? = null'
 if s.count(anchor) != 1: raise SystemExit("1349: LiveKit event job anchor changed")
 s=s.replace(anchor,'''    private var speakerLevelJob: Job? = null
