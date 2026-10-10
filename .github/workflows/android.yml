@@ -183,6 +183,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/compat/integrate_device_compatibility_v1346.py
 
+      - name: Restore each member last chosen radio channel
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/restore_last_member_room_v1348.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -191,8 +195,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 177', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.47"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 178', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.48"', t, count=1)
           p.write_text(t)
           PY
 
@@ -307,7 +311,17 @@ jobs:
           grep -F 'beginPresenceFor(channel.id)' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'melehat_report_room_presence' app/src/main/java/com/saomi/telsiz/voice/RoomPresenceReporter.kt
           grep -F 'melehat_active_room_users' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
-          grep -F 'roomSelection = lobby.id to lobby.name' "$ROOT"
+          grep -F 'roomSelection = lastRoom.id to lastRoom.name' "$ROOT"
+          grep -F 'LastRoomPreference(roomsContext)' "$ROOT"
+          grep -F 'loadOrInitialize(signedInUser, localStore.loadActiveChannel())' "$ROOT"
+          grep -F 'LastRoomPreference(this@PttForegroundService)' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          grep -F 'LastRoomPreference(this)' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'legacy_preference_claimed' app/src/main/java/com/saomi/telsiz/rooms/LastRoomPreference.kt
+          grep -F 'if (!wasClaimed) canonical(preUpgradeSelection) else publicRoom()' app/src/main/java/com/saomi/telsiz/rooms/LastRoomPreference.kt
+          if grep -F 'roomSelection = lobby.id to lobby.name' "$ROOT"; then
+            echo 'Old unconditional common-room reentry remains'
+            exit 1
+          fi
           grep -F 'LaunchedEffect(session?.userId, profile.isComplete)' "$ROOT"
           grep -F 'KANALI SİL' "$ROOT"
           grep -F '4 ÜYEYİ AKTAR' "$ROOT"
@@ -457,8 +471,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.47 >/dev/null 2>&1 && { echo "Release v1.3.47 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.47 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.47" --notes "MELEHAT TELSIZ 1.3.47: Android 15/16 safe-area compatibility title; preserve brand/permission checks and working PTT"
+          gh release view v1.3.48 >/dev/null 2>&1 && { echo "Release v1.3.48 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.48 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.48" --notes "MELEHAT TELSIZ 1.3.48: New members use ORTAK KANAL; existing members reopen their last selected channel per account; PTT and live rooms preserved"
 
 
       - name: Verify APK package and signature
