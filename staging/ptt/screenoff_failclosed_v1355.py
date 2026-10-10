@@ -122,21 +122,16 @@ change(radio, '''    private suspend fun beginTransmit(requestId: Long, external
         val session = sessions.load()''')
 # Recheck before and after the microphone enable call, in addition to the
 # preexisting request-ID + room state guards.
-change(radio, '''if (!pttHeld || requestId != transmitRequestId || !started ||
-            roomSwitching || !ptt.isConnectedTo(channel.id))''',
-'''if (!pttHeld || requestId != transmitRequestId || !started ||
-            roomSwitching || !ptt.isConnectedTo(channel.id) ||
-            (external && !getSystemService(PowerManager::class.java).isInteractive))''')
+# Two protected checks: before and after setTransmitting(true).
 s=radio.read_text(encoding="utf-8")
-# Above protected expression occurs twice; second one must be checked too.
 old='''if (!pttHeld || requestId != transmitRequestId || !started ||
             roomSwitching || !ptt.isConnectedTo(channel.id))'''
 new='''if (!pttHeld || requestId != transmitRequestId || !started ||
             roomSwitching || !ptt.isConnectedTo(channel.id) ||
             (external && !getSystemService(PowerManager::class.java).isInteractive))'''
-if s.count(old)!=1:
-    raise SystemExit(f"1355 missing second mic state guard: {s.count(old)}")
-radio.write_text(s.replace(old,new,1),encoding="utf-8")
+if s.count(old)!=2:
+    raise SystemExit(f"1355 expected two mic state guards: {s.count(old)}")
+radio.write_text(s.replace(old,new,2),encoding="utf-8")
 
 change(radio, '''    override fun onDestroy() {
         clearExternalGuard()''',
