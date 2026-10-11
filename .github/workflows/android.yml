@@ -514,7 +514,7 @@ jobs:
           grep -F 'ExternalPttDiagnostics.describe(this,"native")' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'ANDROID_ONLY_TEST_ALREADY_RUNNING_NO_RESET' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
           grep -F '"native" -> stage' app/src/main/java/com/saomi/telsiz/service/ExternalPttDiagnostics.kt
-          grep -F 'LIVEKIT_BAGLANTI_HATASI_' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'LIVEKIT_CONNECT_HATASI' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'LiveChannelUiState.connectionProblem.collectAsState()' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'TOKEN_ALINDI_CANLI_BAGLANTI_BEKLENIYOR' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'ShizukuRawPttState.enabled' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
