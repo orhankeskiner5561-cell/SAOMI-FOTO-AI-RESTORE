@@ -29,8 +29,8 @@ one('''    val selectedRoomTitle = if (radioOn && liveStatus == "LIVE") liveRoom
         else localStore.loadActiveChannel().name
     // Online means server acknowledged the user in the channel, even if alone.
     // LIVE remains a separate true WebRTC audio transport state for microphone.
-    val radioOnline = radioOn && session != null &&
-        activeRoomByUser[session.userId] == selectedRoomId &&
+    val radioOnline = radioOn &&
+        (session?.userId?.let { activeRoomByUser[it] == selectedRoomId } == true) &&
         android.os.SystemClock.elapsedRealtime()-successfulPresenceAt<15000L''',
 "peer-independent online")
 start=s.index('                    Text(\n                        when {\n                            !radioOn -> "MELEHAT • TELSİZ HAZIR"')
