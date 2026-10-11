@@ -235,6 +235,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/ptt/restore_native_visibility_v1360.py
 
+      - name: Diagnose private-room LiveKit connection failures without touching microphone
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/livekit_connection_diagnostics_v1361.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -243,8 +247,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 190', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.60"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 191', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.61"', t, count=1)
           p.write_text(t)
           PY
 
@@ -506,6 +510,11 @@ jobs:
           grep -F 'ExternalPttDiagnostics.describe(this,"native")' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'ANDROID_ONLY_TEST_ALREADY_RUNNING_NO_RESET' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
           grep -F '"native" -> stage' app/src/main/java/com/saomi/telsiz/service/ExternalPttDiagnostics.kt
+          grep -F 'LIVEKIT_BAGLANTI_HATASI_' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'LiveChannelUiState.connectionProblem.collectAsState()' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'TOKEN_ALINDI_CANLI_BAGLANTI_BEKLENIYOR' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
+          grep -F 'ShizukuRawPttState.enabled' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          echo MELEHAT_1361_LIVEKIT_DIAGNOSTIC_ONLY_OK
           echo MELEHAT_1360_RESTORED_ANDROID_NATIVE_LOGS_OK
           echo MELEHAT_1359_NATIVE_ONLY_TEST_OK
           echo MELEHAT_1358_RAW_PTT_SAFETY_OK
@@ -607,8 +616,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.60 >/dev/null 2>&1 && { echo "Release v1.3.60 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.60 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.60" --notes "MELEHAT TELSIZ 1.3.60: Restore Android Accessibility Volume+ DOWN/UP event history independent of Shizuku ownership; native logs are captured before Shizuku early return, tracked separately from raw Shizuku events, and repeated taps no longer erase an ongoing Android-only diagnostic. Existing LiveKit, microphone, channel and confirmed Shizuku PTT behavior unchanged."
+          gh release view v1.3.61 >/dev/null 2>&1 && { echo "Release v1.3.61 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.61 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.61" --notes "MELEHAT TELSIZ 1.3.61: When two phones remain at BAGLANIYOR, display protected LiveKit connection phase and sanitized failure category (session, token, LiveKit socket/TLS/timeout) directly under radio status. Existing channel rights, microphone, PTT and Shizuku raw Volume+ paths unchanged. Diagnostics only until cause is confirmed."
 
 
       - name: Verify APK package and signature
