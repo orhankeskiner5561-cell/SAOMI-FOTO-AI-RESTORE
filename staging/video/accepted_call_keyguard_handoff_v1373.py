@@ -115,12 +115,11 @@ method='''    private fun screenIsLocked():Boolean {
                         override fun onDismissSucceeded() {
                             runOnUiThread {
                                 if(ended)return@runOnUiThread
-                                unlockRequestAttempted=false
-                                // Android may finish dismissing the keyguard on
-                                // the next frame. The poll loop will then start
-                                // the already-accepted P2P call automatically.
+                                // Keep the prompt guard during Android's unlock
+                                // animation. Do not issue another request until the
+                                // device actually becomes unlocked.
                                 window.decorView.post {
-                                    if(!ended && ensureScreenUnlocked()) {
+                                    if(!ended && !screenIsLocked() && ensureScreenUnlocked()) {
                                         notice("Kilit açıldı • görüşmeye bağlanılıyor")
                                     }
                                 }
