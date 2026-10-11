@@ -251,6 +251,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/p2p/native_channel_integration_v1364.py
 
+      - name: Display real P2P room members, speaking users and active counts
+        working-directory: melehat_build
+        run: python3 ../staging/p2p/room_activity_v1365.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -259,8 +263,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 194', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.64"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 195', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.65"', t, count=1)
           p.write_text(t)
           PY
 
@@ -633,8 +637,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.64 >/dev/null 2>&1 && { echo "Release v1.3.64 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.64 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.64" --notes "MELEHAT TELSIZ 1.3.64: Native authenticated P2P WebRTC takes over main MELEHAT channel BAS KONUS with per-room matching, secured SDP signaling, rapid microphone mute and two-person limit. Original LiveKit class, channels, video calls, signing and package retained. Requires two-phone voice test."
+          gh release view v1.3.65 >/dev/null 2>&1 && { echo "Release v1.3.65 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.65 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.65" --notes "MELEHAT TELSIZ 1.3.65: Correct P2P room occupancy and per-room member names, show who is speaking in channel and member lists, and send short-lived PTT speaking status. Keep the proven 2-user audio path and permanent APK signing unchanged. Four-member mesh is the next staged development."
 
 
       - name: Verify APK package and signature
