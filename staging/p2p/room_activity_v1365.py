@@ -88,6 +88,7 @@ sub(ui,
 "common room header") if False else None
 # The common-room count is inside the room picker, not the signed-in member total.
 common='''                                Text("ORTAK KANAL • Üyelerin ortak alanı",
+                                    fontWeight = FontWeight.Bold)
 '''
 u=ui.read_text(encoding="utf-8")
 if u.count(common)==1:
