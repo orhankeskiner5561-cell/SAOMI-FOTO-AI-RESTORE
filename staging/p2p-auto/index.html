@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2a4762">
+<title>MELEHAT TELSİZ • P2P 2.0</title>
+<style>
+:root{font-family:system-ui,-apple-system,Roboto,Arial,sans-serif;color:#263244;background:#f8f5f9}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh}header{background:#fff;padding:18px;text-align:center;border-bottom:1px solid #e7deee;font-size:22px;font-weight:850;color:#244e68}
+header span{color:#e47732}main{max-width:620px;padding:15px;margin:auto}h1{font-size:21px;margin:3px 0 9px}h2{font-size:17px;margin:0 0 9px}p{line-height:1.46}.muted,small{font-size:13px;color:#5c6675}
+.panel{background:#fff;border:1px solid #e9e1ee;box-shadow:0 2px 8px #00000008;border-radius:17px;padding:15px;margin:13px 0}
+button{font:inherit;border:0;border-radius:12px;cursor:pointer;padding:13px 14px;min-height:49px;background:#6850a5;color:white;font-weight:750}
+button:disabled{background:#aeaab8;cursor:not-allowed}
+.secondary{background:#ede6f7;color:#493b76}.neutral{background:#eaf0f4;color:#394b61}
+.buttons{display:flex;flex-wrap:wrap;gap:9px}.buttons button{flex:1;min-width:150px}
+#status{border-radius:11px;padding:12px;font-weight:750;background:#eee8f6;color:#493b76}
+#status.good{background:#e5f7ed;color:#16603b}#status.bad{background:#fff1df;color:#96500c}
+#invite{width:100%;font-size:12px;background:#fafafa;color:#374151;border:1px solid #c9ccd6;border-radius:11px;resize:none;padding:11px;overflow-wrap:anywhere}
+#talk{display:block;width:200px;height:200px;border-radius:50%;margin:17px auto;background:#a6806e;color:white;font-size:23px;touch-action:none;user-select:none;box-shadow:0 8px 18px #0002}
+#talk.on{background:#268c58}#talk:disabled{background:#d0c9c2;color:#625b57}
+#log{font-size:12px;line-height:1.45;max-height:180px;min-height:45px;overflow:auto;white-space:pre-wrap;background:#f7f8fa;border-radius:9px;padding:9px}
+footer{font-size:12px;color:#6c6873;line-height:1.55;margin:17px 5px 29px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header>MELE - HAT <span>TELSİZ</span></header>
+<main>
+<h1>Otomatik P2P eşleşme <small>Test 2.0</small></h1>
+<p class="muted">WhatsApp'tan uzun kod göndermeye gerek yok. Davet bağlantısı üzerinden telefonlar otomatik eşleşir. Ses mümkün olduğunda doğrudan telefonlar arasında gider; aracı ses sunucusu kullanılmaz.</p>
+<div class="panel"><div id="status">Hazır. Bir oda oluşturun veya davet bağlantısını açın.</div></div>
+<section id="hostPanel" class="panel">
+<h2>1. Siz: Oda oluşturun</h2>
+<p>İlk telefonda bu düğmeye basın ve mikrofon izni verin. Bir defalık davet bağlantısı hazırlanacak.</p>
+<button id="host">ODA OLUŞTUR</button>
+</section>
+<section id="sharePanel" class="panel" hidden>
+<h2>2. Davet bağlantısını Emrah'a gönderin</h2>
+<p class="muted">Bu bağlantıyı WhatsApp ile yalnızca konuşmak istediğiniz kişiye iletin. Uzun SDP kodu göndermeniz gerekmiyor.</p>
+<textarea id="invite" rows="3" readonly></textarea>
+<div class="buttons"><button id="copy" class="secondary">DAVET LİNKİNİ KOPYALA</button><button id="share" class="secondary">PAYLAŞ</button></div>
+</section>
+<section id="guestPanel" class="panel" hidden>
+<h2>Davet alındı — görüşmeye katılın</h2>
+<p>Gönderilen bağlantıyı açtınız. Mikrofon izni vererek otomatik bağlantıyı başlatın.</p>
+<button id="join">DAVETE KATIL</button>
+</section>
+<section class="panel">
+<h2>Karşılıklı BAS KONUŞ</h2>
+<button id="talk" disabled aria-label="Basılı tutarak konuş">BAS KONUŞ</button>
+<p class="muted" style="text-align:center">Basılı tutunca mikrofon açılır; bırakınca hemen kapanır. Sayfayı iki telefonda da açık tutun.</p>
+<div class="buttons"><button id="audio" class="secondary">KARŞI SESİ AÇ</button><button id="stop" class="neutral">TESTİ BİTİR</button></div>
+</section>
+<section class="panel"><h2>Test kayıtları</h2><div id="log">Hazır.</div></section>
+<footer>Bu yalnızca tarayıcıdaki bağımsız P2P testidir; mevcut MELEHAT Android uygulamasına dokunmaz. Supabase sadece kısa süreli bağlantı teklifini/yanıtını iletir, konuşma sesini taşımaz. Davet bağlantısı bir erişim anahtarıdır; herkese açık paylaşmayın. Sinyalleşme kaydı 30 dakika sonra geçersiz olur. Bazı mobil ağlarda NAT/CGNAT nedeniyle TURN olmadan doğrudan bağlantı kurulamayabilir. Tarayıcı arka planda ve ekran kapalıyken süreklilik garanti edilmez.</footer>
+</main>
+<audio id="remote" playsinline autoplay></audio>
+<script>
+"use strict";
+(function(){
+const API_URL="https://ecbzcexhpzntgrfpizxc.supabase.co/rest/v1/rpc/melehat_p2p_test_exchange";
+const API_KEY="sb_publishable_bSEN1Escr9WnT5gdhx2K6w_KoxwjoGB";
+const $=id=>document.getElementById(id);
+const incomingRoom=(new URL(location.href)).searchParams.get("room")||"";
+let pc=null,localStream=null,room="",role="",pollId=null,retryId=null,processing=false,stopped=false;
+let lastOfferVersion=0,lastAnswerVersion=0,hostOfferVersion=0,restartCount=0,connectedWasLogged=false,restarting=false,sharingUrl="";
+const notice=(v,kind)=>{$("status").textContent=v;$("status").className=kind||"";};
+const log=v=>{const el=$("log");el.textContent+="\n"+new Date().toLocaleTimeString("tr-TR")+"  "+v;el.scrollTop=el.scrollHeight;};
+const fail=e=>{const msg=e&&e.message?e.message:String(e);notice(msg,"bad");log("HATA: "+msg);};
+const validRoom=r=>/^[a-f0-9]{48}$/.test(r);
+const newRoom=()=>Array.from(crypto.getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,"0")).join("");
+function mute(on){
+ const active=!!(on&&pc&&pc.connectionState==="connected"&&localStream);
+ if(localStream)localStream.getAudioTracks().forEach(t=>t.enabled=active);
+ $("talk").classList.toggle("on",active);
+ $("talk").textContent=active?"KONUŞUYOR":"BAS KONUŞ";
+}
+function peerStatus(){
+ if(!pc||stopped)return;
+ const state=pc.connectionState;
+ $("talk").disabled=state!=="connected";
+ if(state==="connected"){
+   if(!connectedWasLogged){log("DOĞRUDAN BAĞLANTI KURULDU. BAS KONUŞ ile deneyin.");describeRoute();}
+   connectedWasLogged=true;restartCount=0;if(retryId){clearTimeout(retryId);retryId=null;}
+   notice("DOĞRUDAN P2P BAĞLANTI KURULDU","good");
+ }else if(state==="failed"||state==="disconnected"){
+   connectedWasLogged=false;mute(false);
+   notice("Bağlantı "+(state==="failed"?"kurulamadı":"kesildi")+". Yeniden bağlanma deneniyor...","bad");
+   if(role==="host")scheduleRestart();
+   else log("Karşı telefonun bağlantıyı yenilemesi bekleniyor.");
+ }else if(state==="connecting"){
+   notice("Telefonlar arasında doğrudan bağlantı kontrol ediliyor...");
+ }
+}
+async function describeRoute(){
+ try{
+   const stats=await pc.getStats(),all=new Map(),pairs=[];
+   stats.forEach(v=>{if(v.type==="local-candidate"||v.type==="remote-candidate")all.set(v.id,v);if(v.type==="candidate-pair"&&v.state==="succeeded")pairs.push(v);});
+   const best=pairs.find(p=>p.selected)||pairs.find(p=>p.nominated)||pairs[0];
+   if(best){const l=all.get(best.localCandidateId),r=all.get(best.remoteCandidateId);log("Bağlantı tipi: "+(l?l.candidateType:"?")+" / "+(r?r.candidateType:"?")+". TURN yok.");}
+ }catch(e){log("Ağ bağlantısı ayrıntısı okunamadı.");}
+}
+async function initPeer(){
+ if(pc)throw Error("Önce TESTİ BİTİR düğmesine basın.");
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error("Mikrofon için güncel Chrome ve HTTPS gerekir.");
+ localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+ localStream.getAudioTracks().forEach(t=>t.enabled=false);
+ pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"}],iceTransportPolicy:"all"});
+ pc.ontrack=e=>{
+   $("remote").srcObject=e.streams&&e.streams[0]?e.streams[0]:new MediaStream([e.track]);
+   $("remote").play().then(()=>log("Karşı ses açıldı.")).catch(()=>log("KARŞI SESİ AÇ düğmesine dokunun."));
+ };
+ pc.onconnectionstatechange=peerStatus;
+ pc.oniceconnectionstatechange=()=>{if(pc)log("Ağ: "+pc.iceConnectionState);};
+ const warnings=new Set();
+ pc.onicecandidateerror=e=>{if(!warnings.has(e.errorCode)){warnings.add(e.errorCode);log("STUN uyarısı ("+e.errorCode+"). Bu uyarı tek başına bağlantıyı engellemez.");}};
+ localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+ log("Mikrofon hazır. Basılı tutmadıkça ses gönderilmez.");
+}
+async function waitIce(){
+ const current=pc;
+ if(!current||current.iceGatheringState==="complete")return;
+ notice("Ağ adresleri toplanıyor, lütfen bekleyin...");
+ await new Promise(resolve=>{
+   let finished=false;
+   let timer;
+   const finish=()=>{if(finished)return;finished=true;clearTimeout(timer);current.removeEventListener("icegatheringstatechange",changed);resolve();};
+   const changed=()=>{if(current.iceGatheringState==="complete")finish();};
+   current.addEventListener("icegatheringstatechange",changed);
+   timer=setTimeout(()=>{log("ICE toplama süresi doldu; bulunan adaylarla devam ediliyor.");finish();},25000);
+ });
+ const lines=(current.localDescription?.sdp||"").split(/\r?\n/).filter(t=>t.startsWith("a=candidate:"));
+ const count=x=>lines.filter(t=>t.includes(" typ "+x+" " )||t.endsWith(" typ "+x)).length;
+ log("Ağ adayları: host "+count("host")+", srflx "+count("srflx")+", relay "+count("relay")+".");
+}
+async function signal(action,sdp=null,version=null){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),16000);
+ try{
+  const response=await fetch(API_URL,{
+   method:"POST",mode:"cors",cache:"no-store",
+   headers:{"apikey":API_KEY,"Authorization":"Bearer "+API_KEY,"Content-Type":"application/json"},
+   body:JSON.stringify({p_room:room,p_action:action,p_sdp:sdp,p_offer_version:version}),
+   signal:controller.signal
+  });
+  let body;
+  try{body=await response.json();}catch(e){throw Error("Eşleştirme sunucusundan yanıt alınamadı.");}
+  if(!response.ok)throw Error("Eşleştirme hatası: "+(body.message||response.status));
+  return body;
+ }catch(e){if(e.name==="AbortError")throw Error("Eşleştirme sunucusu zaman aşımı.");throw e;}
+ finally{clearTimeout(timer);}
+}
+function startPolling(){
+ if(pollId)clearInterval(pollId);
+ pollId=setInterval(()=>{void checkSignaling();},2300);
+}
+async function checkSignaling(){
+ if(stopped||!pc||processing)return;
+ processing=true;
+ try{
+  const msg=await signal("get");
+  if(!msg.exists){if(role==="guest")notice("Davet henüz hazır değil veya süresi doldu.","bad");return;}
+  if(role==="host"){
+    if(msg.offer_version===hostOfferVersion && msg.answer_version===hostOfferVersion &&
+       msg.answer_sdp && lastAnswerVersion!==hostOfferVersion && pc.signalingState==="have-local-offer"){
+       await pc.setRemoteDescription({type:"answer",sdp:msg.answer_sdp});
+       lastAnswerVersion=hostOfferVersion;
+       log("Karşı taraf otomatik eşleşti. Bağlantı kontrol ediliyor.");
+       notice("Eşleşme tamam. Doğrudan bağlantı kuruluyor...");
+    }
+  }else if(role==="guest"&&msg.offer_sdp&&msg.offer_version>lastOfferVersion){
+    if(pc.signalingState!=="stable"){log("Yeni davet için WebRTC durumunun hazır olması bekleniyor.");return;}
+    await pc.setRemoteDescription({type:"offer",sdp:msg.offer_sdp});
+    await pc.setLocalDescription(await pc.createAnswer());
+    await waitIce();
+    await signal("answer",pc.localDescription.sdp,msg.offer_version);
+    lastOfferVersion=msg.offer_version;
+    log("Otomatik yanıt gönderildi (sürüm "+lastOfferVersion+").");
+    notice("Yanıt gönderildi, P2P bağlantısı bekleniyor...");
+  }
+ }catch(e){log("Eşleştirme uyarısı: "+(e.message||e));}
+ finally{processing=false;}
+}
+function scheduleRestart(){
+ if(retryId||restarting||role!=="host"||stopped||restartCount>=3)return;
+ retryId=setTimeout(async()=>{
+   retryId=null;
+   if(stopped||!pc||pc.connectionState==="connected")return;
+   if(pc.signalingState!=="stable"){scheduleRestart();return;}
+   restarting=true;restartCount++;
+   try{
+    log("Bağlantı yenileme denemesi: "+restartCount+"/3");
+    await pc.setLocalDescription(await pc.createOffer({iceRestart:true}));
+    await waitIce();
+    const msg=await signal("offer",pc.localDescription.sdp);
+    hostOfferVersion=msg.offer_version;lastAnswerVersion=0;
+    notice("Bağlantı yenileme teklifi gönderildi...");
+   }catch(e){log("Yenileme uyarısı: "+(e.message||e));}
+   finally{restarting=false;if(pc&&pc.connectionState!=="connected")scheduleRestart();}
+ },9000);
+}
+async function openHost(){
+ if(pc)return;
+ $("host").disabled=true;stopped=false;role="host";room=newRoom();
+ try{
+   notice("Mikrofon açılıyor ve davet hazırlanıyor...");
+   await initPeer();
+   await pc.setLocalDescription(await pc.createOffer());
+   await waitIce();
+   const msg=await signal("offer",pc.localDescription.sdp);
+   hostOfferVersion=msg.offer_version;
+   sharingUrl=location.origin+location.pathname+"?room="+room;
+   $("invite").value=sharingUrl;
+   $("sharePanel").hidden=false;
+   notice("DAVET HAZIR — LİNKİ EMRAH'A GÖNDERİN");
+   log("Davet bağlantısı hazır. Kod gönderme gerekmez.");
+   startPolling();
+ }catch(e){fail(e);endTest();notice("Davet oluşturulamadı. Tekrar deneyin.","bad");}
+}
+async function joinGuest(){
+ if(pc)return;
+ $("join").disabled=true;stopped=false;role="guest";room=incomingRoom;
+ try{
+   notice("Mikrofon açılıyor. Davete bağlanılıyor...");
+   await initPeer();
+   startPolling();
+   await checkSignaling();
+ }catch(e){fail(e);endTest();notice("Davete katılınamadı. Tekrar deneyin.","bad");}
+}
+function endTest(){
+ stopped=true;mute(false);
+ if(pollId){clearInterval(pollId);pollId=null;}
+ if(retryId){clearTimeout(retryId);retryId=null;}
+ if(pc){pc.onconnectionstatechange=null;pc.close();pc=null;}
+ if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;}
+ $("remote").srcObject=null;
+ role="";room="";processing=false;restarting=false;sharingUrl="";
+ lastOfferVersion=0;lastAnswerVersion=0;hostOfferVersion=0;restartCount=0;connectedWasLogged=false;
+ $("talk").disabled=true;$("host").disabled=false;$("join").disabled=false;
+ $("sharePanel").hidden=true;notice("Test durduruldu. Yeni bir deneme başlatabilirsiniz.");
+ log("Test sonlandırıldı.");
+}
+$("host").addEventListener("click",()=>{void openHost();});
+$("join").addEventListener("click",()=>{void joinGuest();});
+$("stop").addEventListener("click",endTest);
+$("audio").addEventListener("click",async()=>{try{await $("remote").play();log("Ses çıkışı açık.");}catch(e){fail(e);}});
+$("copy").addEventListener("click",async()=>{
+ try{await navigator.clipboard.writeText(sharingUrl);log("Davet linki kopyalandı.");}
+ catch(e){$("invite").focus();$("invite").select();if(document.execCommand("copy"))log("Davet linki kopyalandı.");else fail(e);}
+});
+$("share").addEventListener("click",async()=>{
+ if(!sharingUrl)return;
+ try{if(navigator.share)await navigator.share({title:"MELEHAT P2P daveti",text:"MELEHAT telsiz ses denemesine katıl:",url:sharingUrl});
+ else await navigator.clipboard.writeText(sharingUrl);}
+ catch(e){if(e.name!=="AbortError")log("Paylaşım için DAVET LİNKİNİ KOPYALA kullanın.");}
+});
+$("talk").addEventListener("pointerdown",e=>{if($("talk").disabled)return;e.preventDefault();$("talk").setPointerCapture(e.pointerId);mute(true);});
+["pointerup","pointercancel","lostpointercapture"].forEach(name=>$("talk").addEventListener(name,()=>mute(false)));
+window.addEventListener("blur",()=>mute(false));
+document.addEventListener("visibilitychange",()=>{if(document.hidden)mute(false);});
+window.addEventListener("pagehide",()=>{if(localStream)localStream.getTracks().forEach(t=>t.enabled=false);});
+if(incomingRoom){
+ $("hostPanel").hidden=true;$("guestPanel").hidden=false;
+ if(!validRoom(incomingRoom)){$("join").disabled=true;notice("Bu davet bağlantısı geçersiz. Yeni davet isteyin.","bad");}
+ else notice("DAVET ALINDI — DAVETE KATIL'a basın.");
+}else{$("guestPanel").hidden=true;$("hostPanel").hidden=false;}
+})();
+</script>
+</body>
+</html>
