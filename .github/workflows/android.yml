@@ -259,6 +259,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/p2p/group_mesh_v1366.py
 
+      - name: Consolidate MELEHAT updater and display truthful radio connection
+        working-directory: melehat_build
+        run: python3 ../staging/updater/single_update_v1367.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -267,8 +271,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 196', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.66"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 197', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.67"', t, count=1)
           p.write_text(t)
           PY
 
@@ -641,8 +645,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.66 >/dev/null 2>&1 && { echo "Release v1.3.66 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.66 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.66" --notes "MELEHAT TELSIZ 1.3.66: Use real P2P-based room counts and speaking users, and add optional native four-person WebRTC mesh. Two-person P2P remains default and preserved as a fallback. Switch the multi-user option only with the radio off. No changes to signing, package identity or LiveKit/video source. Multi-user calls require on-device testing."
+          gh release view v1.3.67 >/dev/null 2>&1 && { echo "Release v1.3.67 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.67 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.67" --notes "MELEHAT TELSIZ 1.3.67: Use one version-aware in-app update checker (GitHub release), show installer continuation after Android permissions, recover failed downloads, and display actual MELEHAT voice connection status. Existing membership, room approvals, last channel, native P2P, optional 4-member mode, LiveKit source and signing are preserved."
 
 
       - name: Verify APK package and signature
