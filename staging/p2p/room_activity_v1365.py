@@ -141,10 +141,21 @@ sub(ui,
 "visible live speaker on member list")
 
 sub(p2p,
+'''import java.util.UUID''',
+'''import java.util.UUID
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock''',
+"mutex imports")
+sub(p2p,
+'''    private var loop: Job? = null''',
+'''    private var loop: Job? = null
+    private val talkMutex = Mutex()''',
+"ordered speak state events")
+sub(p2p,
 '''        if(!enabled) {forceMute();return true}''',
 '''        if(!enabled) {
             forceMute()
-            if(running) runCatching { presence("talk_off") }
+            if(running) talkMutex.withLock { runCatching { presence("talk_off") } }
             return true
         }''',
 "talk-off signal")
@@ -153,7 +164,11 @@ sub(p2p,
         return track?.enabled()==true''',
 '''        track?.setEnabled(true)
         val ready=track?.enabled()==true
-        if(ready) scope.launch { runCatching { presence("talk_on") } }
+        if(ready) scope.launch {
+            talkMutex.withLock {
+                if(track?.enabled()==true) runCatching { presence("talk_on") }
+            }
+        }
         return ready''',
 "talk-on signal")
 for file, required in [
