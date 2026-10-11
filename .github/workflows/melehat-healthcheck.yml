@@ -32,6 +32,8 @@ jobs:
           print("Failure category:", j.get("failure","none"))
           if j.get("room_api_ok") is not None: print("Room management API:", j.get("room_api_ok"))
           print("WebSocket probe:", j.get("signaling_websocket","n/a"))
+          print("Token validation HTTP:", j.get("validate_http_status","n/a"))
+          print("WebSocket endpoint as HTTP:", j.get("rtc_plain_http_status","n/a"))
           print("Latency (ms):", j.get("latency_ms","unknown"))
           PY
               exit 0
