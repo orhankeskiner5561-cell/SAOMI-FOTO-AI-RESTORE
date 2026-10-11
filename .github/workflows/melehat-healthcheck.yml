@@ -1,0 +1,35 @@
+name: MELEHAT LiveKit Connection Health Check
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/melehat-healthcheck.yml"
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check token gateway and LiveKit host reachability
+        shell: bash
+        env:
+          HEALTH_URL: https://ecbzcexhpzntgrfpizxc.supabase.co/functions/v1/livekit-health
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            echo "Attempt $attempt:"
+            if result=$(curl -fsS --max-time 14 "$HEALTH_URL"); then
+              export HEALTH_JSON="$result"
+              python3 - <<'PY'
+          import json,os
+          j=json.loads(os.environ['HEALTH_JSON'])
+          print("LiveKit configured:", j.get("configured"))
+          print("LiveKit host reachable:", j.get("host_reachable"))
+          print("Host HTTP response:", j.get("http_status","unavailable"))
+          print("Failure category:", j.get("failure","none"))
+          print("Latency (ms):", j.get("latency_ms","unknown"))
+          PY
+              exit 0
+            fi
+            sleep 3
+          done
+          exit 1
