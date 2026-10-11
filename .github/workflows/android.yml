@@ -271,6 +271,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/video/native_video_integration_v1369.py
 
+      - name: Stabilize MELEHAT room status text without moving controls
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/channel_status_layout_v1370.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -279,8 +283,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 199', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.69"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 200', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.70"', t, count=1)
           p.write_text(t)
           PY
 
@@ -653,8 +657,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.69 >/dev/null 2>&1 && { echo "Release v1.3.69 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.69 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.69" --notes "MELEHAT TELSIZ 1.3.69: Route individual video calls to native authenticated P2P WebRTC camera/audio instead of exhausted LiveKit media service; keep caller/callee ringing and approval, maintain room-online presence while video temporarily suspends the PTT audio device, and restore the prior radio channel after calls. Existing two-person PTT, security, signing and in-app updater unchanged. Two-phone video and carrier NAT testing required; not group video."
+          gh release view v1.3.70 >/dev/null 2>&1 && { echo "Release v1.3.70 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.70 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.70" --notes "MELEHAT TELSIZ 1.3.70: UI-only update: channel titles never overlap the ON/OFF switch, status row has a constant height and single-line ellipsis, and transient top notices keep a reserved line so BAS KONUS and action buttons stay in position. Existing authenticated P2P, video calls, room approvals, update mechanism, Android package and signing are unchanged."
 
 
       - name: Verify APK package and signature
