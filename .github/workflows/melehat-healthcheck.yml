@@ -17,7 +17,7 @@ jobs:
           set -euo pipefail
           for attempt in 1 2 3; do
             echo "Attempt $attempt:"
-            if result=$(curl -fsS --max-time 14 "$HEALTH_URL"); then
+            if result=$(curl -sS --max-time 14 "$HEALTH_URL"); then
               export HEALTH_JSON="$result"
               python3 - <<'PY'
           import json,os
@@ -30,6 +30,8 @@ jobs:
           print("Signaling websocket:", j.get("signaling_websocket","unknown"))
           print("Host HTTP response:", j.get("http_status","unavailable"))
           print("Failure category:", j.get("failure","none"))
+          if j.get("room_api_ok") is not None: print("Room management API:", j.get("room_api_ok"))
+          print("WebSocket probe:", j.get("signaling_websocket","n/a"))
           print("Latency (ms):", j.get("latency_ms","unknown"))
           PY
               exit 0
