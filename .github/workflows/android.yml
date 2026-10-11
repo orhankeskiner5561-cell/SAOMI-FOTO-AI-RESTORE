@@ -275,6 +275,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/channel_status_layout_v1370.py
 
+      - name: Bind remote P2P camera frames and end calls on both phones
+        working-directory: melehat_build
+        run: python3 ../staging/video/p2p_video_receive_and_end_v1371.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -283,8 +287,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 200', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.70"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 201', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.71"', t, count=1)
           p.write_text(t)
           PY
 
@@ -657,8 +661,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.70 >/dev/null 2>&1 && { echo "Release v1.3.70 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.70 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.70" --notes "MELEHAT TELSIZ 1.3.70: UI-only update: channel titles never overlap the ON/OFF switch, status row has a constant height and single-line ellipsis, and transient top notices keep a reserved line so BAS KONUS and action buttons stay in position. Existing authenticated P2P, video calls, room approvals, update mechanism, Android package and signing are unchanged."
+          gh release view v1.3.71 >/dev/null 2>&1 && { echo "Release v1.3.71 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.71 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.71" --notes "MELEHAT TELSIZ 1.3.71: Fix Android native 1:1 P2P video: subscribe to remote camera tracks via unified-plan onTrack plus legacy callbacks, watch real remote frames rather than claim media based on ICE state, correct SurfaceViewRenderer layering and shut down BOTH phones when either participant ends. Keep native PTT, channels, online presence, original package and signing unchanged; needs two-phone testing."
 
 
       - name: Verify APK package and signature
