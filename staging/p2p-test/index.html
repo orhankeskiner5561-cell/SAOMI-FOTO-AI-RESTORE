@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#273d58">
+<title>MELE-HAT • P2P Ses Testi</title>
+<style>
+:root{font-family:system-ui,-apple-system,Roboto,Arial,sans-serif;color:#1f2937;background:#f8f5f9}
+*{box-sizing:border-box}body{margin:0;min-height:100dvh}header{background:#fff;padding:22px 18px;text-align:center;border-bottom:1px solid #eadfea;color:#244e68;font-weight:800;letter-spacing:.4px;font-size:22px}
+header span{color:#e47732}main{max-width:640px;padding:16px;margin:auto}h1{font-size:21px;margin:3px 0 10px}p{line-height:1.46}small,.muted{color:#606672;font-size:13px}
+.panel{background:#fff;border:1px solid #e9e1ee;box-shadow:0 2px 8px #0000000a;border-radius:18px;padding:16px;margin:13px 0}
+h2{font-size:17px;margin:0 0 11px}button{font:inherit;border:0;border-radius:12px;cursor:pointer;padding:13px 15px;font-weight:750;background:#6750a4;color:white;min-height:50px}
+button:disabled{background:#a9a5b5;cursor:not-allowed}.secondary{color:#493b76;background:#ede6f7}.quiet{color:#343b49;background:#edf0f3}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{flex:1;min-width:155px}
+textarea{border:1px solid #c7bcca;border-radius:10px;width:100%;font:13px ui-monospace,monospace;resize:vertical;padding:12px;min-height:94px;overflow-wrap:anywhere;background:#fff}
+label{font-weight:600;display:block;margin:8px 0}
+.pill{background:#f2ebfa;border-radius:12px;padding:12px;color:#442f63;font-weight:700}
+.success{background:#e5f6eb;color:#19613b}.warn{background:#fff0d7;color:#8b510f}
+#talk{display:block;width:200px;height:200px;border-radius:50%;margin:16px auto;background:#a6806e;color:white;font-size:24px;touch-action:none;user-select:none;box-shadow:0 8px 18px #0002}
+#talk:active,#talk.talking{background:#26905b}#talk:disabled{background:#cfc7c2;color:#5d5652}
+#log{font-size:12px;line-height:1.5;max-height:130px;overflow:auto;white-space:pre-wrap;background:#f7f8fa;border-radius:9px;padding:9px}
+footer{font-size:13px;color:#6b6370;line-height:1.5;margin:15px 7px 30px}
+</style>
+</head>
+<body>
+<header>MELE - HAT <span>TELSİZ</span></header>
+<main>
+<h1>İki telefon arasında doğrudan ses testi</h1>
+<p class="muted">Bu deneme mevcut MELEHAT uygulamasına dokunmaz. LiveKit kullanılmaz. İki telefonda da bu sayfayı açın, mobil internet/Wi-Fi kullanabilirsiniz. Test sırasında ekranlar açık kalsın.</p>
+<div class="panel">
+  <div id="status" class="pill">Henüz bağlantı kurulmadı.</div>
+  <p class="muted">Ses yalnızca bağlantı oluştuğunda ve aşağıdaki BAS KONUŞ tuşu basılı tutulduğunda gönderilir.</p>
+</div>
+<section class="panel">
+<h2>1. Orhan'ın telefonu: Davet oluştur</h2>
+<p>Bu düğmeye yalnızca ilk telefonda basın. Mikrofon izni istenirse izin verin.</p>
+<button id="offer">DAVET OLUŞTUR</button>
+</section>
+<section class="panel">
+<h2>2. Emrah'ın telefonu: Daveti kabul et</h2>
+<p>Orhan'ın gönderdiği davet kodunu aşağıdaki kutuya yapıştırın, ardından kabul edin.</p>
+<label for="incoming">Karşı telefondan gelen kod</label>
+<textarea id="incoming" placeholder="WhatsApp'tan gelen MELEHAT1:... kodunu buraya yapıştırın"></textarea>
+<div class="actions"><button id="accept">DAVETİ KABUL ET</button><button id="finish" class="secondary">GELEN YANITI BAĞLA</button></div>
+<p class="muted">Emrah: “Daveti kabul et” seçeneğiyle cevap kodu oluşturun. Orhan: Emrah'dan gelen yanıtı buraya yapıştırıp “Gelen yanıtı bağla” düğmesine basın.</p>
+</section>
+<section class="panel">
+<h2>3. Üretilen kodu WhatsApp'tan gönder</h2>
+<p class="muted">Buradaki kodu kopyalayıp yalnızca karşı telefona özel mesajla iletin. Telefonların ağ bilgileri içerebilir, herkese açık paylaşmayın.</p>
+<textarea id="outgoing" readonly placeholder="Üretilen davet veya yanıt kodu burada görünecek"></textarea>
+<div class="actions"><button id="copy" class="secondary">KODU KOPYALA</button><button id="audio" class="quiet">KARŞI SESİ AÇ</button></div>
+</section>
+<section class="panel">
+<h2>4. Bağlandıktan sonra konuş</h2>
+<button id="talk" disabled aria-label="Basılı tutarak konuş">BAS KONUŞ</button>
+<p class="muted" style="text-align:center">Butona basılı tutun: ses gönderilir. Bırakınca mikrofon susturulur.</p>
+<div class="actions"><button id="hangup" class="quiet">TESTİ BİTİR</button></div>
+</section>
+<section class="panel"><h2>Test kayıtları</h2><div id="log" aria-live="polite">Hazır.</div></section>
+<footer>Önemli: STUN yalnızca bağlantı keşfi içindir; medya sunucudan geçirilmez. Mobil operatörlerin NAT/CGNAT kısıtlamaları nedeniyle iki telefon arasında doğrudan bağlantı başarısız olabilir. Böyle bir durumda ücretsiz ve kesintisiz çok kullanıcılı telsiz garanti edilemez. Bu sayfada herhangi bir otomatik ses kaydı yapılmaz.</footer>
+</main>
+<audio id="remote" autoplay playsinline></audio>
+<script>
+"use strict";
+(function(){
+const $=id=>document.getElementById(id);
+let pc=null, localStream=null, role="", talkOn=false, remoteStream=null;
+const log=(m)=>{const t=new Date().toLocaleTimeString("tr-TR");$("log").textContent+="\n"+t+"  "+m;$("log").scrollTop=$("log").scrollHeight;};
+const status=(t,ok)=>{$("status").textContent=t;$("status").className="pill "+(ok===true?"success":ok===false?"warn":"");};
+const errmsg=e=>{log("HATA: "+(e&&e.message?e.message:String(e)));status("İşlem tamamlanamadı. Kayıtları kontrol edin.",false);};
+function setTalk(value){
+  const can=!!pc && pc.connectionState==="connected";
+  const on=!!(value && can && localStream);
+  talkOn=on;
+  if(localStream) localStream.getAudioTracks().forEach(t=>t.enabled=on);
+  $("talk").classList.toggle("talking",on);
+  $("talk").textContent=on?"KONUŞUYOR":"BAS KONUŞ";
+}
+function updateState(){
+ if(!pc)return;
+ const state=pc.connectionState;
+ $("talk").disabled=state!=="connected";
+ if(state==="connected"){status("DOĞRUDAN P2P BAĞLANTI KURULDU",true);log("Ses bağlantısı kuruldu. BAS KONUŞ ile test edin.");showRoute();}
+ else if(state==="failed"){setTalk(false);status("P2P BAĞLANTISI KURULAMADI (NAT/CGNAT olabilir)",false);log("TURN kullanılmadı. Bağlantı için aracı sunucu gerekebilir.");}
+ else if(state==="disconnected"||state==="closed"){setTalk(false);status("Bağlantı kesildi: "+state,false);}
+ else status("Bağlantı durumu: "+state);
+}
+async function showRoute(){
+ try {
+  const stats=await pc.getStats(), pairs=[],candidates=new Map();
+  stats.forEach(v=>{if(v.type==="local-candidate"||v.type==="remote-candidate")candidates.set(v.id,v);if(v.type==="candidate-pair"&&v.state==="succeeded")pairs.push(v)});
+  const picked=pairs.find(x=>x.selected)||pairs.find(x=>x.nominated)||pairs[0];
+  if(picked){const l=candidates.get(picked.localCandidateId),r=candidates.get(picked.remoteCandidateId);log("Bağlantı tipi: "+(l?l.candidateType:"?")+" / "+(r?r.candidateType:"?")+". TURN/relay sunucusu yapılandırılmadı.");}
+ }catch(e){log("Bağlantı yolu bilgisi alınamadı.");}
+}
+async function start(){
+ if(pc)throw Error("Bu telefonda test başlatılmış. Önce TESTİ BİTİR deyin.");
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Error("Mikrofona erişim için HTTPS ve Chrome gerekiyor.");
+ localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+ localStream.getAudioTracks().forEach(t=>t.enabled=false);
+ const servers=[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun.cloudflare.com:3478"}];
+ pc=new RTCPeerConnection({iceServers:servers,iceTransportPolicy:"all"});
+ pc.ontrack=(e)=>{
+  remoteStream=e.streams&&e.streams[0]?e.streams[0]:new MediaStream([e.track]);
+  $("remote").srcObject=remoteStream;
+  $("remote").play().then(()=>log("Karşı tarafın sesi açık.")).catch(()=>log("Karşı ses için KARŞI SESİ AÇ'a dokunun."));
+ };
+ pc.onconnectionstatechange=updateState;
+ pc.oniceconnectionstatechange=()=>log("Ağ kontrolü: "+pc.iceConnectionState);
+ pc.onicecandidateerror=e=>log("STUN uyarısı ("+(e.errorCode||"bilinmiyor")+").");
+ localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+ status("Mikrofon hazır, karşı telefonla eşleşme bekleniyor.");
+ log("Mikrofon izni alındı (ses kapalı).");
+}
+async function waitIce(){
+ const current=pc;
+ if(current.iceGatheringState==="complete")return;
+ log("Telefonlar için bağlantı adayları toplanıyor...");
+ await new Promise(resolve=>{
+   let done=false;let timer;
+   const finish=()=>{if(done)return;done=true;clearTimeout(timer);current.removeEventListener("icegatheringstatechange",listener);resolve();};
+   const listener=()=>{if(current.iceGatheringState==="complete")finish();};
+   current.addEventListener("icegatheringstatechange",listener);
+   timer=setTimeout(finish,15000);
+ });
+ log("Davet kodu hazır.");
+}
+function b64(bytes){let txt="";for(let i=0;i<bytes.length;i+=4096)txt+=String.fromCharCode.apply(null,bytes.subarray(i,i+4096));return btoa(txt);}
+function un64(str){const binary=atob(str);const out=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)out[i]=binary.charCodeAt(i);return out;}
+async function makeCode(description){
+ const raw=new TextEncoder().encode(JSON.stringify({type:description.type,sdp:description.sdp}));
+ if(typeof CompressionStream!=="undefined"){
+  const stream=new Blob([raw]).stream().pipeThrough(new CompressionStream("gzip"));
+  return "MELEHAT1:G:"+b64(new Uint8Array(await new Response(stream).arrayBuffer()));
+ }
+ return "MELEHAT1:R:"+b64(raw);
+}
+async function readCode(){
+ const src=$("incoming").value.trim().replace(/\s/g,"");
+ if(!src.startsWith("MELEHAT1:"))throw Error("Geçerli MELEHAT davet veya yanıt kodu yapıştırın.");
+ const mode=src.slice(9,10),data=src.slice(11);
+ let bytes=un64(data);
+ if(mode==="G"){
+  if(typeof DecompressionStream==="undefined")throw Error("Chrome tarayıcınızı güncelleyin: Gzip okunamadı.");
+  bytes=new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer());
+ }else if(mode!=="R")throw Error("Kod türü geçersiz.");
+ const obj=JSON.parse(new TextDecoder().decode(bytes));
+ if(!["offer","answer"].includes(obj.type)||typeof obj.sdp!=="string"||obj.sdp.length>100000||obj.sdp.length<100)throw Error("Geçersiz WebRTC yanıtı.");
+ return obj;
+}
+function output(v){$("outgoing").value=v;$("outgoing").scrollTop=0;}
+$("offer").onclick=async function(){try{this.disabled=true;role="offer";await start();await pc.setLocalDescription(await pc.createOffer());await waitIce();output(await makeCode(pc.localDescription));status("DAVET HAZIR — KODU EMRAH'A GÖNDERİN");}catch(e){this.disabled=false;errmsg(e);}};
+$("accept").onclick=async function(){try{const s=await readCode();if(s.type!=="offer")throw Error("Emrah için davet kodu gerekli.");this.disabled=true;role="answer";await start();await pc.setRemoteDescription(s);await pc.setLocalDescription(await pc.createAnswer());await waitIce();output(await makeCode(pc.localDescription));status("YANIT HAZIR — KODU ORHAN'A GÖNDERİN");}catch(e){this.disabled=false;errmsg(e);}};
+$("finish").onclick=async function(){try{if(role!=="offer"||!pc)throw Error("Önce Orhan'ın telefonunda DAVET OLUŞTUR seçin.");const s=await readCode();if(s.type!=="answer")throw Error("Emrah'ın yanıt kodu gerekli.");await pc.setRemoteDescription(s);log("Emrah'ın yanıtı işlendi.");status("P2P bağlantısı kontrol ediliyor...");}catch(e){errmsg(e);}};
+$("copy").onclick=async()=>{try{const code=$("outgoing").value;if(!code)throw Error("Henüz bir kod üretilmedi.");await navigator.clipboard.writeText(code);log("Kod kopyalandı. WhatsApp ile karşı telefona gönderin.");}catch(e){$("outgoing").focus();$("outgoing").select();if(document.execCommand("copy"))log("Kod kopyalandı.");else errmsg(e);}};
+$("audio").onclick=async()=>{try{await $("remote").play();log("Ses çıkışı açıldı.");}catch(e){errmsg(e);}};
+$("talk").addEventListener("pointerdown",e=>{if($("talk").disabled)return;e.preventDefault();$("talk").setPointerCapture(e.pointerId);setTalk(true);});
+["pointerup","pointercancel","lostpointercapture"].forEach(ev=>$("talk").addEventListener(ev,()=>setTalk(false)));
+window.addEventListener("blur",()=>setTalk(false));
+document.addEventListener("visibilitychange",()=>{if(document.hidden)setTalk(false);});
+$("hangup").onclick=()=>{setTalk(false);if(pc){pc.close();pc=null;}if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;} $("remote").srcObject=null;role="";$("talk").disabled=true;$("offer").disabled=false;$("accept").disabled=false;$("incoming").value="";output("");status("Test sonlandırıldı.");log("Bağlantı kapatıldı, mikrofon durduruldu.");};
+})();
+</script>
+</body>
+</html>
