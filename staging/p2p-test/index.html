@@ -26,7 +26,7 @@ footer{font-size:13px;color:#6b6370;line-height:1.5;margin:15px 7px 30px}
 <body>
 <header>MELE - HAT <span>TELSİZ</span></header>
 <main>
-<h1>İki telefon arasında doğrudan ses testi</h1>
+<h1>İki telefon arasında doğrudan ses testi <small>• Test 1.1</small></h1>
 <p class="muted">Bu deneme mevcut MELEHAT uygulamasına dokunmaz. LiveKit kullanılmaz. İki telefonda da bu sayfayı açın, mobil internet/Wi-Fi kullanabilirsiniz. Test sırasında ekranlar açık kalsın.</p>
 <div class="panel">
   <div id="status" class="pill">Henüz bağlantı kurulmadı.</div>
@@ -34,7 +34,7 @@ footer{font-size:13px;color:#6b6370;line-height:1.5;margin:15px 7px 30px}
 </div>
 <section class="panel">
 <h2>1. Orhan'ın telefonu: Davet oluştur</h2>
-<p>Bu düğmeye yalnızca ilk telefonda basın. Mikrofon izni istenirse izin verin.</p>
+<p>Bu düğmeye yalnızca ilk telefonda basın. Mikrofon izni istenirse izin verin. <strong>Aynı davet için yeni davet oluşturmayın.</strong></p>
 <button id="offer">DAVET OLUŞTUR</button>
 </section>
 <section class="panel">
@@ -43,7 +43,7 @@ footer{font-size:13px;color:#6b6370;line-height:1.5;margin:15px 7px 30px}
 <label for="incoming">Karşı telefondan gelen kod</label>
 <textarea id="incoming" placeholder="WhatsApp'tan gelen MELEHAT1:... kodunu buraya yapıştırın"></textarea>
 <div class="actions"><button id="accept">DAVETİ KABUL ET</button><button id="finish" class="secondary">GELEN YANITI BAĞLA</button></div>
-<p class="muted">Emrah: “Daveti kabul et” seçeneğiyle cevap kodu oluşturun. Orhan: Emrah'dan gelen yanıtı buraya yapıştırıp “Gelen yanıtı bağla” düğmesine basın.</p>
+<p class="muted">Emrah: “Daveti kabul et” seçeneğiyle cevap kodu oluşturun. Orhan: Emrah’dan gelen <strong>yanıt kodunu bir kere</strong> yapıştırıp “Gelen yanıtı bağla” düğmesine yalnızca bir kez basın. Yeniden başlamak için önce TESTİ BİTİR’i kullanın.</p>
 </section>
 <section class="panel">
 <h2>3. Üretilen kodu WhatsApp'tan gönder</h2>
@@ -66,9 +66,11 @@ footer{font-size:13px;color:#6b6370;line-height:1.5;margin:15px 7px 30px}
 (function(){
 const $=id=>document.getElementById(id);
 let pc=null, localStream=null, role="", talkOn=false, remoteStream=null;
+let applyingAnswer=false, answerApplied=false, seenStunErrors=new Set();
 const log=(m)=>{const t=new Date().toLocaleTimeString("tr-TR");$("log").textContent+="\n"+t+"  "+m;$("log").scrollTop=$("log").scrollHeight;};
 const status=(t,ok)=>{$("status").textContent=t;$("status").className="pill "+(ok===true?"success":ok===false?"warn":"");};
 const errmsg=e=>{log("HATA: "+(e&&e.message?e.message:String(e)));status("İşlem tamamlanamadı. Kayıtları kontrol edin.",false);};
+function candidateReport(){if(!pc||!pc.localDescription)return;const lines=pc.localDescription.sdp.split(/\r?\n/).filter(x=>x.startsWith("a=candidate:"));const count=(type)=>lines.filter(x=>new RegExp("\\btyp "+type+"\\b").test(x)).length;const host=count("host"),srflx=count("srflx"),relay=count("relay");log("Ağ adayları: yerel="+host+", dış ağ="+srflx+", aktarıcı="+relay+".");if(!srflx&&!relay)log("UYARI: Dış ağ adayı alınamadı. Ayrı mobil internet ağlarında doğrudan bağlantı kurulamayabilir.");}
 function setTalk(value){
   const can=!!pc && pc.connectionState==="connected";
   const on=!!(value && can && localStream);
@@ -82,8 +84,8 @@ function updateState(){
  const state=pc.connectionState;
  $("talk").disabled=state!=="connected";
  if(state==="connected"){status("DOĞRUDAN P2P BAĞLANTI KURULDU",true);log("Ses bağlantısı kuruldu. BAS KONUŞ ile test edin.");showRoute();}
- else if(state==="failed"){setTalk(false);status("P2P BAĞLANTISI KURULAMADI (NAT/CGNAT olabilir)",false);log("TURN kullanılmadı. Bağlantı için aracı sunucu gerekebilir.");}
- else if(state==="disconnected"||state==="closed"){setTalk(false);status("Bağlantı kesildi: "+state,false);}
+ else if(state==="failed"){setTalk(false);status("P2P BAĞLANTISI KURULAMADI (NAT/CGNAT olabilir)",false);log("TURN kullanılmadı. Mobil şebekeler doğrudan bağlantıya izin vermiyor olabilir. İki telefonu aynı Wi-Fi ağıyla tekrar deneyebilirsiniz.");}
+ else if(state==="disconnected"||state==="closed"){setTalk(false);status("Bağlantı kesildi: "+state,false);if(state==="disconnected")log("Bağlantı kesildi. Yeniden denemek için iki telefonda TESTİ BİTİR deyip yeni kodlarla başlayın.");}
  else status("Bağlantı durumu: "+state);
 }
 async function showRoute(){
@@ -108,7 +110,7 @@ async function start(){
  };
  pc.onconnectionstatechange=updateState;
  pc.oniceconnectionstatechange=()=>log("Ağ kontrolü: "+pc.iceConnectionState);
- pc.onicecandidateerror=e=>log("STUN uyarısı ("+(e.errorCode||"bilinmiyor")+").");
+ pc.onicecandidateerror=e=>{const key=(e.errorCode||"bilinmiyor")+":"+(e.url||"");if(!seenStunErrors.has(key)){seenStunErrors.add(key);log("STUN uyarısı ("+(e.errorCode||"bilinmiyor")+"). 701 çoğunlukla sunucuya erişim/isim çözümleme sorunudur; tek başına P2P başarısızlığı değildir.");}};
  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
  status("Mikrofon hazır, karşı telefonla eşleşme bekleniyor.");
  log("Mikrofon izni alındı (ses kapalı).");
@@ -122,9 +124,10 @@ async function waitIce(){
    const finish=()=>{if(done)return;done=true;clearTimeout(timer);current.removeEventListener("icegatheringstatechange",listener);resolve();};
    const listener=()=>{if(current.iceGatheringState==="complete")finish();};
    current.addEventListener("icegatheringstatechange",listener);
-   timer=setTimeout(finish,15000);
+   timer=setTimeout(()=>{log("ICE aday toplama bekleme süresi doldu; mevcut adaylarla devam ediliyor.");finish();},25000);
  });
- log("Davet kodu hazır.");
+ candidateReport();
+ log("Davet/yanıt için ağ kodu hazır.");
 }
 function b64(bytes){let txt="";for(let i=0;i<bytes.length;i+=4096)txt+=String.fromCharCode.apply(null,bytes.subarray(i,i+4096));return btoa(txt);}
 function un64(str){const binary=atob(str);const out=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)out[i]=binary.charCodeAt(i);return out;}
@@ -150,16 +153,16 @@ async function readCode(){
  return obj;
 }
 function output(v){$("outgoing").value=v;$("outgoing").scrollTop=0;}
-$("offer").onclick=async function(){try{this.disabled=true;role="offer";await start();await pc.setLocalDescription(await pc.createOffer());await waitIce();output(await makeCode(pc.localDescription));status("DAVET HAZIR — KODU EMRAH'A GÖNDERİN");}catch(e){this.disabled=false;errmsg(e);}};
+$("offer").onclick=async function(){try{this.disabled=true;await start();role="offer";answerApplied=false;applyingAnswer=false;$("finish").disabled=false;await pc.setLocalDescription(await pc.createOffer());await waitIce();output(await makeCode(pc.localDescription));status("DAVET HAZIR — KODU EMRAH\u0027A GÖNDERİN");}catch(e){this.disabled=false;errmsg(e);}};
 $("accept").onclick=async function(){try{const s=await readCode();if(s.type!=="offer")throw Error("Emrah için davet kodu gerekli.");this.disabled=true;role="answer";await start();await pc.setRemoteDescription(s);await pc.setLocalDescription(await pc.createAnswer());await waitIce();output(await makeCode(pc.localDescription));status("YANIT HAZIR — KODU ORHAN'A GÖNDERİN");}catch(e){this.disabled=false;errmsg(e);}};
-$("finish").onclick=async function(){try{if(role!=="offer"||!pc)throw Error("Önce Orhan'ın telefonunda DAVET OLUŞTUR seçin.");const s=await readCode();if(s.type!=="answer")throw Error("Emrah'ın yanıt kodu gerekli.");await pc.setRemoteDescription(s);log("Emrah'ın yanıtı işlendi.");status("P2P bağlantısı kontrol ediliyor...");}catch(e){errmsg(e);}};
+$("finish").onclick=async function(){if(applyingAnswer)return;if(answerApplied){log("Yanıt zaten uygulandı; aynı kod tekrar kullanılmaz.");return;}try{if(role!=="offer"||!pc)throw Error("Önce kendi telefonunuzda DAVET OLUŞTUR seçin.");if(pc.signalingState!=="have-local-offer")throw Error("Yeni yanıt kabul edilemiyor. TESTİ BİTİR ile yeniden başlayın.");applyingAnswer=true;this.disabled=true;const s=await readCode();if(s.type!=="answer")throw Error("Emrah\u0027ın yanıt kodu gerekli.");await pc.setRemoteDescription(s);answerApplied=true;log("Emrah\u0027ın yanıtı bir kez işlendi.");status("P2P bağlantısı kontrol ediliyor...");}catch(e){this.disabled=false;errmsg(e);}finally{applyingAnswer=false;}};
 $("copy").onclick=async()=>{try{const code=$("outgoing").value;if(!code)throw Error("Henüz bir kod üretilmedi.");await navigator.clipboard.writeText(code);log("Kod kopyalandı. WhatsApp ile karşı telefona gönderin.");}catch(e){$("outgoing").focus();$("outgoing").select();if(document.execCommand("copy"))log("Kod kopyalandı.");else errmsg(e);}};
 $("audio").onclick=async()=>{try{await $("remote").play();log("Ses çıkışı açıldı.");}catch(e){errmsg(e);}};
 $("talk").addEventListener("pointerdown",e=>{if($("talk").disabled)return;e.preventDefault();$("talk").setPointerCapture(e.pointerId);setTalk(true);});
 ["pointerup","pointercancel","lostpointercapture"].forEach(ev=>$("talk").addEventListener(ev,()=>setTalk(false)));
 window.addEventListener("blur",()=>setTalk(false));
 document.addEventListener("visibilitychange",()=>{if(document.hidden)setTalk(false);});
-$("hangup").onclick=()=>{setTalk(false);if(pc){pc.close();pc=null;}if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;} $("remote").srcObject=null;role="";$("talk").disabled=true;$("offer").disabled=false;$("accept").disabled=false;$("incoming").value="";output("");status("Test sonlandırıldı.");log("Bağlantı kapatıldı, mikrofon durduruldu.");};
+$("hangup").onclick=()=>{setTalk(false);if(pc){pc.close();pc=null;}if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null;} $("remote").srcObject=null;role="";applyingAnswer=false;answerApplied=false;seenStunErrors.clear();$("finish").disabled=false;$("talk").disabled=true;$("offer").disabled=false;$("accept").disabled=false;$("incoming").value="";output("");status("Test sonlandırıldı.");log("Bağlantı kapatıldı, mikrofon durduruldu.");};
 })();
 </script>
 </body>
