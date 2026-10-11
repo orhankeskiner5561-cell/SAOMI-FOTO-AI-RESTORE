@@ -42,7 +42,7 @@ activity_tag='''        <activity
             android:name="com.saomi.telsiz.p2p.MelehatP2pActivity"
             android:exported="false"
             android:label="MELEHAT P2P SES"
-            android:usesCleartextTraffic="false" />
+            android:screenOrientation="unspecified" />
 '''
 m=m.replace("    </application>",activity_tag+"    </application>",1)
 
@@ -257,7 +257,7 @@ class MelehatP2pActivity : Activity() {
         super.onPause()
         // The web app mutes on visibility change. Do not transmit in background.
         web.evaluateJavascript(
-            "document.dispatchEvent(new Event('visibilitychange'))", null
+            "window.dispatchEvent(new Event('blur'))", null
         )
         web.onPause()
     }
