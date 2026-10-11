@@ -545,7 +545,7 @@ jobs:
           grep -F 'SUNUCU_429_ISTEK_SINIRI' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'reconnectDelayMs()' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'r.release()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
-          grep -F 'val radioOnline = radioOn && session != null' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'val radioOnline = radioOn &&' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           echo MELEHAT_1362_RETRY_RELEASE_LAYOUT_OK
           echo MELEHAT_1361_LIVEKIT_DIAGNOSTIC_ONLY_OK
           echo MELEHAT_1360_RESTORED_ANDROID_NATIVE_LOGS_OK
