@@ -77,10 +77,10 @@ exec(compile(source, "responsive_home_v1383_source.py", "exec"))
 from pathlib import Path
 layout = Path("app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
 text = layout.read_text("utf-8")
-before = ('                Spacer(Modifier.height(30.dp))\\n'
-          '            }\\n\\n'
+before = ('                Spacer(Modifier.height(30.dp))\n'
+          '            }\n\n'
           '            // Keep both cards ~0.5 cm higher without moving PTT.')
-after = ('                Spacer(Modifier.height(30.dp))\\n\\n'
+after = ('                Spacer(Modifier.height(30.dp))\n\n'
          '            // Keep both cards ~0.5 cm higher without moving PTT.')
 assert text.count(before) == 1, "Missing original enclosing UI-column boundary"
 text = text.replace(before, after, 1)
