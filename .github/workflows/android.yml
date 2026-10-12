@@ -489,6 +489,33 @@ jobs:
           grep -F 'P2pVideoCallActivity' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Restore v1.3.58 Shizuku raw mandal with automatic rearm
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/restore_shizuku_v1385.py
+
+      - name: Verify raw Shizuku UP release and user-owned resume
+        working-directory: melehat_build
+        run: |
+          set -e
+          S=app/src/main/java/com/saomi/telsiz/service
+          UI=app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'RAW_MAX_HOLD_MS = 30000L' "$S/PttForegroundService.kt"
+          grep -F 'rawPttRelease("RAW_PTT_UP")' "$S/PttForegroundService.kt"
+          grep -F 'rawPttRelease("RAW_SAFETY_RELEASE")' "$S/PttForegroundService.kt"
+          grep -F 'if(rawDesired() && started && store.isRadioEnabled()' "$S/PttForegroundService.kt"
+          grep -F 'RAW_MODE_ARMED_V1358_RESTORED' "$S/PttForegroundService.kt"
+          grep -F 'startRawRestore()' "$S/PttForegroundService.kt"
+          grep -F 'stopRawRestore()' "$S/PttForegroundService.kt"
+          grep -F 'SmartExternalPttMode.setEnabled(this,false)' "$S/PttForegroundService.kt"
+          grep -F 'if (ShizukuRawPttState.enabled)' "$S/VolumePttAccessibilityService.kt"
+          grep -F 'onRawKey(event)' "$S/ShizukuRawKeyProbe.kt"
+          grep -F 'Shizuku yeniden bağlanma tercihi' "$UI"
+          grep -F 'SHIZUKU DIŞ MANDALI AÇ' "$UI"
+          grep -F 'SHIZUKU DIŞ MANDALI KAPAT' "$UI"
+          grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -497,8 +524,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 214', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.84"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 215', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.85"', t, count=1)
           p.write_text(t)
           PY
 
@@ -874,8 +901,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.84 >/dev/null 2>&1 && { echo "Release v1.3.84 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.84 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.84" --notes "Optional consented Smart External Volume+ screen-off first-press PTT. Analyze local P2P microphone PCM without independent recording; close after 2 seconds without close-speech and always by 15 seconds; no-samples fail closed. Speaker proximity estimate cannot identify speakers. Existing PTT, video, channel, subscription and signing preserved."
+          gh release view v1.3.85 >/dev/null 2>&1 && { echo "Release v1.3.85 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.85 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.85" --notes "Restore verified v1.3.58 Shizuku raw Volume+ key PTT DOWN and UP, opt-in rearm after room switch/radio service recreation, single external key owner, fallback smart mode off during raw usage, 30s fail-closed cap. Keep all regular voice/video, subscriber, channel and app signing unchanged."
 
 
       - name: Verify APK package and signature
