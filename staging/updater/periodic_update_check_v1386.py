@@ -155,7 +155,7 @@ assert s.count(good)==1, "Updater card manual retry anchor missing"
 s=s.replace(good,newgood,1)
 for token in (
     "onPtt(true)", "onPtt(false)", "P2pVideoCallActivity",
-    "SHIZUKU", "YENİ ABONELER", "GÜNCELLE",
+    "YENİ ABONELER", "GÜNCELLE",
     "KURULUMU TAMAMLA", "DownloadManager",
     "LastRoomPreference", "markDecisionNoticesSeen",
     "raw.githubusercontent.com", "api.github.com",
