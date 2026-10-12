@@ -236,7 +236,7 @@ mesh.write_text(src,encoding="utf-8")
 m=manifest.read_text(encoding="utf-8")
 if 'android.permission.ACCESS_NETWORK_STATE' not in m:
  m=one(m,'<application',
-     '<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\\n    <application',
+     '<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n    <application',
      "network state permission")
  manifest.write_text(m,encoding="utf-8")
 
