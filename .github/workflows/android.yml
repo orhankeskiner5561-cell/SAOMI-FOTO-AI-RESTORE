@@ -534,7 +534,7 @@ jobs:
           grep -F 'TEKRAR KONTROL ET' "$ROOT"
           grep -F 'onPtt(true)' "$ROOT"
           grep -F 'onPtt(false)' "$ROOT"
-          grep -F 'SHIZUKU' "$ROOT"
+          grep -F 'SHIZUKU DIŞ MANDALI AÇ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'KURULUMU TAMAMLA' "$ROOT"
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
