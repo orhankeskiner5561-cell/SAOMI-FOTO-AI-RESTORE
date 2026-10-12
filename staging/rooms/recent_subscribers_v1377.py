@@ -95,7 +95,7 @@ for imp in (
     "import androidx.compose.foundation.shape.CircleShape",
     "import androidx.compose.foundation.background",
 ):
-    if imp not in s:
+    if "\n" + imp + "\n" not in "\n" + s:
         pos=s.find("\n",s.find("package "))
         s=s[:pos+1]+imp+"\n"+s[pos+1:]
 
