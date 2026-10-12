@@ -70,3 +70,20 @@ y+Zh86z76k3rst18d3rRvTw7P+22Drqtw8ujVrN7cd7qXJ6+hrn/BisQeFs=""".replace("\n","")
 ))
 assert hashlib.sha256(source).hexdigest() == "7ac03eb82ac48e60c9178fa239ea6eb2879200510c518112e4b4bcd00981aeed"
 exec(compile(source, "responsive_home_v1383_source.py", "exec"))
+
+# The old update/member row shares the surrounding center-aligned Column.
+# Keep that original Column open until after its two cards; closing it at
+# the end of the PTT section would prematurely close AppRoot's scope.
+from pathlib import Path
+layout = Path("app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt")
+text = layout.read_text("utf-8")
+before = ('                Spacer(Modifier.height(30.dp))\\n'
+          '            }\\n\\n'
+          '            // Keep both cards ~0.5 cm higher without moving PTT.')
+after = ('                Spacer(Modifier.height(30.dp))\\n\\n'
+         '            // Keep both cards ~0.5 cm higher without moving PTT.')
+assert text.count(before) == 1, "Missing original enclosing UI-column boundary"
+text = text.replace(before, after, 1)
+layout.write_text(text, encoding="utf-8")
+assert text.count("{") == text.count("}"), "Kotlin scope balance changed"
+
