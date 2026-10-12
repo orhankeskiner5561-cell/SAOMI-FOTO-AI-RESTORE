@@ -212,6 +212,7 @@ m=single(m,'''    private var watchJob:Job?=null''',
 ''',"mesh passive stats")
 m=single(m,
 '''            running=true
+            runCatching{registerNetworkRecovery()}
             watchJob=scope.launch{watch(thisEpoch)}''',
 '''            running=true
             startRemoteVoiceMeter()
