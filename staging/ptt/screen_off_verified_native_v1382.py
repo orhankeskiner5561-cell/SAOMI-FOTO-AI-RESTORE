@@ -123,6 +123,15 @@ replace(probe,
             )
             ExternalPttDiagnostics.record(context,"key",''',"only matched DOWN/UP qualify")
 
+replace(probe,
+'''        edit.apply()
+        // Return true: an experiment must not invoke any PTT path.''',
+'''        edit.apply()
+        // After three real DOWN/UP pairs, stop the no-audio qualification test.
+        if (event.action == KeyEvent.ACTION_UP &&
+            ScreenOffPttEligibility.isQualified(context)) stop(context)
+        // Return true: an experiment must not invoke any PTT path.''',"automatically finish certified no-audio test")
+
 # Unarmed accessibility events remain normal volume controls.
 replace(acc,
 '''    private fun isArmed(): Boolean =
@@ -248,6 +257,15 @@ extra='''        line("Karanlık ekran Ses+ güvenlik testi: " +
 if s.count(old_line)!=1:raise RuntimeError("compat status anchor changed")
 s=s.replace(old_line,old_line+"\n"+extra,1)
 compat.write_text(s,"utf-8")
+replace(compat,
+'''            isChecked = externalPrefs.getBoolean("enabled", false)''',
+'''            isChecked = externalPrefs.getBoolean("enabled", false) &&
+                com.saomi.telsiz.service.ScreenOffPttEligibility.consent(
+                    this@DeviceCompatibilityActivity)''',"switch reflects explicit consent")
+replace(compat,
+'''        val externalEnabled = externalPrefs.getBoolean("enabled", false)''',
+'''        val externalEnabled = externalPrefs.getBoolean("enabled", false) &&
+            com.saomi.telsiz.service.ScreenOffPttEligibility.consent(this)''',"status reflects consent")
 
 assert "applicationId = \"com.melehat.telsiz\"" in Path("app/build.gradle.kts").read_text()
 for token in (
