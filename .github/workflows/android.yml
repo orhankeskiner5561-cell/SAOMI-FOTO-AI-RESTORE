@@ -384,6 +384,32 @@ jobs:
           grep -F 'setEnabled(false)' app/src/main/java/com/saomi/telsiz/p2p/P2pMeshRadioClient.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Move ÇIKIŞ left of Kanallar KAPAT and hide seen join decisions
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/channel_footer_and_seen_result_v1381.py
+
+      - name: Verify one-time decision notice and moved logout
+        working-directory: melehat_build
+        run: |
+          set -e
+          ROOT=app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'Text("ÇIKIŞ")' "$ROOT"
+          grep -F 'horizontalArrangement = Arrangement.SpaceBetween' "$ROOT"
+          grep -F 'myLatestJoinRequest?.resultSeenAt == null' "$ROOT"
+          grep -F 'markDecisionNoticesSeen(me, unseenIds)' "$ROOT"
+          grep -F 'Text("KAPAT")' "$ROOT"
+          grep -F 'Color(0xFF654333)' "$ROOT"
+          grep -F 'Color(0xFFD32F2F)' "$ROOT"
+          grep -F 'YENİ ABONELER' "$ROOT"
+          grep -F 'GÜNCELLE' "$ROOT"
+          grep -F 'onPtt(true)' "$ROOT"
+          grep -F 'onPtt(false)' "$ROOT"
+          grep -F 'P2pVideoCallActivity' "$ROOT"
+          if grep -F 'Text("Çıkış")' "$ROOT"; then
+            echo "Old home-screen logout remains"
+            exit 1
+          fi
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -392,8 +418,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 210', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.80"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 211', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.81"', t, count=1)
           p.write_text(t)
           PY
 
@@ -769,8 +795,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.80 >/dev/null 2>&1 && { echo "Release v1.3.80 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.80 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.80" --notes "Remote received voice displays 3 dark-brown audio-reactive rings; PTT turns red only while transmitting and returns to milk-coffee on release. Native P2P and LiveKit volume read-only meters; all existing channels, update UI, signing unchanged."
+          gh release view v1.3.81 >/dev/null 2>&1 && { echo "Release v1.3.81 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.81 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.81" --notes "Move logout action from home screen to left side of Kanallar footer, opposite KAPAT. Hide requester-only accepted/rejected join result after Kanallar dialog has been closed and acknowledged. Preserve PTT, cameras, subscriptions, channels, update UI, app identity and permanent signing."
 
 
       - name: Verify APK package and signature
