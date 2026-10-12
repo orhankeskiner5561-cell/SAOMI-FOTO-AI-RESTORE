@@ -185,9 +185,6 @@ patch(acc,
             !getSystemService(android.os.PowerManager::class.java).isInteractive)
             15000L
         else if (repeatEvents) REPEAT_SILENCE_MS else NO_REPEAT_LIMIT_MS''',"bounded smart physical press")
-patch(acc,
-'''                if (held && event.repeatCount > 0) {''',
-'''                if (held && event.repeatCount > 0) {''',"preserve repeat branch")
 # Pure smart mode does not depend on Android KEY_UP/REPEAT; those are not
 # synthesized. It re-arms only on a NEW Android KEY_DOWN after closure.
 patch(acc,
