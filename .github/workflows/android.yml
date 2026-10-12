@@ -295,6 +295,10 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/background/radio_network_recovery_v1375.py
 
+      - name: Remove legacy four-member import button from channel list only
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/remove_legacy_import_button_v1376.py
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -303,8 +307,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 205', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.75"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 206', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.76"', t, count=1)
           p.write_text(t)
           PY
 
@@ -447,7 +451,10 @@ jobs:
           fi
           grep -F 'LaunchedEffect(session?.userId, profile.isComplete)' "$ROOT"
           grep -F 'KANALI SİL' "$ROOT"
-          grep -F '4 ÜYEYİ AKTAR' "$ROOT"
+          if grep -F '4 ÜYEYİ AKTAR' "$ROOT"; then
+            echo "Legacy member-import button must not be visible"
+            exit 1
+          fi
           grep -F 'visibleMemberIds' "$ROOT"
           grep -F 'melehat_delete_channel' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
           grep -F 'melehat_import_legacy_members' app/src/main/java/com/saomi/telsiz/rooms/MelehatRoomApi.kt
@@ -677,8 +684,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.75 >/dev/null 2>&1 && { echo "Release v1.3.75 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.75 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.75" --notes "MELEHAT TELSIZ 1.3.75: Lockscreen video-call acceptance: keep accepted MELEHAT P2P Activity visible over Android keyguard, request normal PIN/biometric dismissal, and delay camera/microphone until device is unlocked. Preserve the now-working two-way media, mutual hangup, notifications, main PTT, app ID and permanent signing. Verify on a physically locked Samsung/Xiaomi phone."
+          gh release view v1.3.76 >/dev/null 2>&1 && { echo "Release v1.3.76 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.76 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.76" --notes "MELEHAT TELSIZ 1.3.76: UI-only cleanup: remove obsolete 4 UYEYI AKTAR button from channel list. Keep KANALA GIR, KANALI SIL, existing channel members and all P2P/Video/PTT features, package identity and permanent signing unchanged."
 
 
       - name: Verify APK package and signature
