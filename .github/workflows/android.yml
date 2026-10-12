@@ -378,6 +378,8 @@ jobs:
           grep -F 'MELEHAT_UPDATE_MANIFEST' "$ROOT"
           grep -F 'class RemoteVoiceStatsMeter' app/src/main/java/com/saomi/telsiz/p2p/RemoteVoiceStatsMeter.kt
           grep -F 'getStats {' app/src/main/java/com/saomi/telsiz/p2p/RemoteVoiceStatsMeter.kt
+          grep -F 'startRemoteVoiceMeter' app/src/main/java/com/saomi/telsiz/p2p/P2pRadioClient.kt
+          grep -F 'startRemoteVoiceMeter' app/src/main/java/com/saomi/telsiz/p2p/P2pMeshRadioClient.kt
           grep -F 'setEnabled(false)' app/src/main/java/com/saomi/telsiz/p2p/P2pRadioClient.kt
           grep -F 'setEnabled(false)' app/src/main/java/com/saomi/telsiz/p2p/P2pMeshRadioClient.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
