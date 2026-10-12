@@ -308,6 +308,7 @@ jobs:
         run: |
           grep -F 'MELEHAT_1377' ../staging/rooms/recent_subscribers_v1377.py
           grep -F 'YENİ ABONELER' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -Fx 'import com.saomi.telsiz.data.RecentSubscriber' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'melehat_recent_subscribers' app/src/main/java/com/saomi/telsiz/data/RecentSubscriberApi.kt
           grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
