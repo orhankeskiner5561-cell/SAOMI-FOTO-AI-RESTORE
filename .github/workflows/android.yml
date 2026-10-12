@@ -515,8 +515,8 @@ jobs:
           grep -F 'val incomingRemoteLevel by LiveChannelUiState.remoteAudioLevel.collectAsState()' "$ROOT"
           grep -F 'val incomingWave by androidx.compose.animation.core.animateFloatAsState' "$ROOT"
           grep -F 'Color(0xFFA6806E)' "$ROOT"
-          grep -F 'Color(0xFF765747)' "$ROOT"
-          grep -F 'Color(0xFF24C96B)' "$ROOT"
+          grep -F 'Color(0xFFD32F2F)' "$ROOT"
+          grep -F 'Color(0xFF654333)' "$ROOT"
           grep -F 'filterIsInstance<RemoteParticipant>()' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'it.audioLevel.coerceIn(0f, 1f)' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
           grep -F 'while (kotlinx.coroutines.currentCoroutineContext().isActive)' app/src/main/java/com/saomi/telsiz/voice/LiveKitPttClient.kt
