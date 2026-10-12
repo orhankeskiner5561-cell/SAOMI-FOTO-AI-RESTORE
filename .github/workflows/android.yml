@@ -447,6 +447,7 @@ jobs:
           grep -F 'val titleSp =' "$R"
           grep -F 'val pttDiameter =' "$R"
           grep -F 'ringDiameter = pttDiameter + 48.dp' "$R"
+          grep -F 'heightIn(min = 90.dp)' "$R"
           grep -F 'for (ring in 0..2)' "$R"
           grep -F 'transmitting -> Color(0xFFD32F2F)' "$R"
           grep -F 'heightIn(min = 68.dp)' "$R"
