@@ -475,6 +475,7 @@ jobs:
           F=app/src/main/java/com/saomi/telsiz/service
           test -s "$F/SmartExternalVoiceGate.kt"
           grep -F 'QUIET_MS=2000L' "$F/SmartExternalVoiceGate.kt"
+          grep -F 'NO_SAMPLES_MS=1700L' "$F/SmartExternalVoiceGate.kt"
           grep -F 'MAX_TALK_MS=15000L' "$F/SmartExternalVoiceGate.kt"
           grep -F 'fun allowed(ctx:Context)' "$F/SmartExternalVoiceGate.kt"
           grep -F 'onPcm(' app/src/main/java/com/saomi/telsiz/p2p/P2pRadioClient.kt
