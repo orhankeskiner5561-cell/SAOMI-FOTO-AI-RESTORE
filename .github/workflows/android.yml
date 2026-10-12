@@ -299,6 +299,19 @@ jobs:
         working-directory: melehat_build
         run: python3 ../staging/rooms/remove_legacy_import_button_v1376.py
 
+      - name: Add fixed-position recent subscribers and unread indicator
+        working-directory: melehat_build
+        run: python3 ../staging/rooms/recent_subscribers_v1377.py
+
+      - name: Verify new subscriber UI without touching PTT
+        working-directory: melehat_build
+        run: |
+          grep -F 'MELEHAT_1377' ../staging/rooms/recent_subscribers_v1377.py
+          grep -F 'YENİ ABONELER' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'melehat_recent_subscribers' app/src/main/java/com/saomi/telsiz/data/RecentSubscriberApi.kt
+          grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -307,8 +320,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 206', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.76"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 207', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.77"', t, count=1)
           p.write_text(t)
           PY
 
@@ -684,8 +697,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.76 >/dev/null 2>&1 && { echo "Release v1.3.76 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.76 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.76" --notes "MELEHAT TELSIZ 1.3.76: UI-only cleanup: remove obsolete 4 UYEYI AKTAR button from channel list. Keep KANALA GIR, KANALI SIL, existing channel members and all P2P/Video/PTT features, package identity and permanent signing unchanged."
+          gh release view v1.3.77 >/dev/null 2>&1 && { echo "Release v1.3.77 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.77 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.77" --notes "New YENI ABONELER button below header without moving other controls; authenticated new subscriber directory with true green online/gray offline status and unread registration dot. Existing PTT, LiveKit, P2P video, members, channels, package and signing untouched."
 
 
       - name: Verify APK package and signature
