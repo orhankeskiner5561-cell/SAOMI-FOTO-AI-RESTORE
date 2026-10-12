@@ -516,6 +516,28 @@ jobs:
           grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Add repeated cache-busted OTA checks and manual retry
+        working-directory: melehat_build
+        run: python3 ../staging/updater/periodic_update_check_v1386.py
+
+      - name: Verify robust in-app updater and protected core
+        working-directory: melehat_build
+        run: |
+          set -e
+          ROOT=app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'MELEHAT_1386' ../staging/updater/periodic_update_check_v1386.py
+          grep -F 'LaunchedEffect(updateRefreshNonce)' "$ROOT"
+          grep -F 'delay(if (info == null) 30_000L else 90_000L)' "$ROOT"
+          grep -F 'raw.githubusercontent.com' "$ROOT"
+          grep -F 'api.github.com' "$ROOT"
+          grep -F 'GÜNCELLEME ARA' "$ROOT"
+          grep -F 'TEKRAR KONTROL ET' "$ROOT"
+          grep -F 'onPtt(true)' "$ROOT"
+          grep -F 'onPtt(false)' "$ROOT"
+          grep -F 'SHIZUKU' "$ROOT"
+          grep -F 'KURULUMU TAMAMLA' "$ROOT"
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -524,8 +546,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 215', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.85"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 216', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.86"', t, count=1)
           p.write_text(t)
           PY
 
@@ -901,8 +923,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.85 >/dev/null 2>&1 && { echo "Release v1.3.85 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.85 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.85" --notes "Restore verified v1.3.58 Shizuku raw Volume+ key PTT DOWN and UP, opt-in rearm after room switch/radio service recreation, single external key owner, fallback smart mode off during raw usage, 30s fail-closed cap. Keep all regular voice/video, subscriber, channel and app signing unchanged."
+          gh release view v1.3.86 >/dev/null 2>&1 && { echo "Release v1.3.86 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.86 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.86" --notes "Fix invisible in-app updates. Poll GitHub manifest every 90 seconds, bypass CDN caches, retry failed checks and provide manual update search. Preserve all Shizuku, screen-off PTT, channels, video, subscriptions and permanent app signing."
 
 
       - name: Verify APK package and signature
