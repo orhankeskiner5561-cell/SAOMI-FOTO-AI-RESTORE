@@ -821,7 +821,7 @@ jobs:
           test -s app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
           grep -F 'ANDROID_ONLY_DOWN_' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
           grep -F 'ANDROID_ONLY_TEST_START_180S_NO_MIC' app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
-          grep -F 'NativeVolumeProbe.observe(this,event)' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          grep -F 'NativeVolumeProbe.observe(this, event)' app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
           grep -F 'ANDROID YEREL TUŞ TESTİNİ BAŞLAT' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
           grep -F 'NATIVE_DIAG_BLOCKS_SHIZUKU_PTT' app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
           grep -F 'SHIZUKU DIŞ MANDALI AÇ' app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
