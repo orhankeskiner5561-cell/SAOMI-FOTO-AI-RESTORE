@@ -538,6 +538,25 @@ jobs:
           grep -F 'KURULUMU TAMAMLA' "$ROOT"
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Add Android-only screen-off Volume+ diagnostic v1.3.87
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/stock_android_volume_probe_v1387.py
+
+      - name: Verify Android-only test isolation and phone volume passthrough
+        working-directory: melehat_build
+        run: |
+          set -e
+          A=app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          N=app/src/main/java/com/saomi/telsiz/service/NativeVolumeProbe.kt
+          C=app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          grep -F 'return false // leave the phone' "$A"
+          grep -F 'SCREEN_LOCKED_ON' "$N"
+          grep -F 'MELEHAT 1.3.87' "$C"
+          grep -F 'NativeVolumeProbe.isActive(this)' app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -546,8 +565,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 216', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.86"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 217', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.87"', t, count=1)
           p.write_text(t)
           PY
 
@@ -923,8 +942,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.86 >/dev/null 2>&1 && { echo "Release v1.3.86 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.86 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.86" --notes "Fix invisible in-app updates. Poll GitHub manifest every 90 seconds, bypass CDN caches, retry failed checks and provide manual update search. Preserve all Shizuku, screen-off PTT, channels, video, subscriptions and permanent app signing."
+          gh release view v1.3.87 >/dev/null 2>&1 && { echo "Release v1.3.87 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.87 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.87" --notes "Android-only Volume+ key visibility diagnostic: compares screen-on, locked-lit and fully dark. No Shizuku required for test, no transmit during test, stock volume passthrough, preserve PTT/channel/video/signing. OEM limitations apply."
 
 
       - name: Verify APK package and signature
