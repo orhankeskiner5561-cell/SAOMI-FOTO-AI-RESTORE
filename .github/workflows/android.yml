@@ -557,6 +557,33 @@ jobs:
           grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Add opt-in 90-second MediaSession VolumeProvider diagnostic
+        working-directory: melehat_build
+        run: python3 ../staging/ptt/mediasession_volume_probe_v1388.py
+
+      - name: Verify native and MediaSession tests are isolated from PTT
+        working-directory: melehat_build
+        run: |
+          set -e
+          F=app/src/main/java/com/saomi/telsiz/service/MediaVolumeProbe.kt
+          A=app/src/main/java/com/saomi/telsiz/service/VolumePttAccessibilityService.kt
+          C=app/src/main/java/com/saomi/telsiz/compat/DeviceCompatibilityActivity.kt
+          M=app/src/main/java/com/saomi/telsiz/MainActivity.kt
+          test -s "$F"
+          grep -F 'object MediaVolumeProbe' "$F"
+          grep -F 'MediaSession(app' "$F"
+          grep -F 'VolumeProvider.VOLUME_CONTROL_RELATIVE' "$F"
+          grep -F 'DURATION_MS=90_000L' "$F"
+          grep -F 's.release()' "$F"
+          grep -F 'MediaVolumeProbe.isActive(this)) return false' "$A"
+          grep -F 'MediaVolumeProbe.isActive(this)' "$M"
+          grep -F 'MEDİASESSION TESTİNİ BAŞLAT' "$C"
+          grep -F 'MEDİASESSION TESTİNİ BİTİR' "$C"
+          grep -F 'ANDROID YEREL TUŞ TESTİNİ BAŞLAT' "$C"
+          grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -565,8 +592,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 217', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.87"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 218', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.88"', t, count=1)
           p.write_text(t)
           PY
 
@@ -942,8 +969,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.87 >/dev/null 2>&1 && { echo "Release v1.3.87 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.87 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.87" --notes "Android-only Volume+ key visibility diagnostic: compares screen-on, locked-lit and fully dark. No Shizuku required for test, no transmit during test, stock volume passthrough, preserve PTT/channel/video/signing. OEM limitations apply."
+          gh release view v1.3.88 >/dev/null 2>&1 && { echo "Release v1.3.88 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.88 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.88" --notes "Experimental 90s opt-in MediaSession VolumeProvider +/minus diagnostic for lit/locked/dark screens. Does not detect KEY_UP, does not transmit; temporary media volume routing during test. Preserves radio/channel/video/signing. OEM restrictions apply."
 
 
       - name: Verify APK package and signature
