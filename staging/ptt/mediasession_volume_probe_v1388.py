@@ -84,7 +84,7 @@ object MediaVolumeProbe {
         val p=prefs(app)
         p.edit().clear().putLong("test_time",System.currentTimeMillis()).apply()
         until=SystemClock.elapsedRealtime()+DURATION_MS
-        val provider=object:VolumeProvider(VOLUME_CONTROL_RELATIVE,max,vol) {
+        val provider=object:VolumeProvider(VolumeProvider.VOLUME_CONTROL_RELATIVE,max,vol) {
             override fun onAdjustVolume(direction:Int) {
                 if(!isActive(app)) return
                 if(direction!=AudioManager.ADJUST_RAISE &&
