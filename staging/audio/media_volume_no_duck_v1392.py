@@ -87,7 +87,7 @@ for path in (duo,mesh):
  for t in ("setAudioAttributes(", "AudioAttributes.USAGE_MEDIA",
            "AudioAttributes.CONTENT_TYPE_SPEECH",
            "setSamplesReadyCallback", "SmartExternalVoiceGate.onPcm",
-           "track.setEnabled(false)" if path==duo else "track.setEnabled(false)"):
+           ("localTrack.setEnabled(false)" if path==duo else "track.setEnabled(false)")):
   if t not in text: raise RuntimeError(
       "v1392 protected "+path.name+": "+t)
 build=Path("app/build.gradle.kts").read_text(encoding="utf-8")
