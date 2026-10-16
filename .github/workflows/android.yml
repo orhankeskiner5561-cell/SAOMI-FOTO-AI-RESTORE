@@ -643,6 +643,31 @@ jobs:
           grep -F 'DownloadManager' "$U"
           grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
 
+      - name: Restore full media volume while Melehat stays online
+        working-directory: melehat_build
+        run: python3 ../staging/audio/media_volume_no_duck_v1392.py
+
+      - name: Verify media coexistence and protected push-to-talk
+        working-directory: melehat_build
+        run: |
+          set -e
+          F=app/src/main/java/com/saomi/telsiz/service/PttForegroundService.kt
+          D=app/src/main/java/com/saomi/telsiz/p2p/P2pRadioClient.kt
+          M=app/src/main/java/com/saomi/telsiz/p2p/P2pMeshRadioClient.kt
+          grep -F 'MELEHAT_1392' ../staging/audio/media_volume_no_duck_v1392.py
+          ! grep -F 'activateBestRoute()' "$F"
+          ! grep -F 'audioRoute.deactivate()' "$F"
+          grep -F 'AudioAttributes.USAGE_MEDIA' "$D"
+          grep -F 'AudioAttributes.USAGE_MEDIA' "$M"
+          grep -F 'SmartExternalVoiceGate.onPcm' "$D"
+          grep -F 'SmartExternalVoiceGate.onPcm' "$M"
+          grep -F 'ACTION_PTT_DOWN' "$F"
+          grep -F 'ACTION_PTT_UP' "$F"
+          grep -F 'return START_STICKY' "$F"
+          grep -F 'onPtt(true)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'onPtt(false)' app/src/main/java/com/saomi/telsiz/ui/AppRoot.kt
+          grep -F 'applicationId = "com.melehat.telsiz"' app/build.gradle.kts
+
       - name: Set release version in same build
         working-directory: melehat_build
         run: |
@@ -651,8 +676,8 @@ jobs:
           import re
           p = Path("app/build.gradle.kts")
           t = p.read_text()
-          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 221', t, count=1)
-          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.91"', t, count=1)
+          t = re.sub(r'versionCode\s*=\s*\d+', 'versionCode = 222', t, count=1)
+          t = re.sub(r'versionName\s*=\s*"[^"]+"', 'versionName = "1.3.92"', t, count=1)
           p.write_text(t)
           PY
 
@@ -1028,8 +1053,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view v1.3.91 >/dev/null 2>&1 && { echo "Release v1.3.91 already exists; refusing to replace a distributed APK"; exit 1; } || true
-          gh release create v1.3.91 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.91" --notes "Compact the oversized green update card: put ARA and SURUMLER side by side, reduce vertical padding and align its height with the members card. Preserve v1.3.90 updater logic, radio/PTT, video, members, signing and stable Android application identity."
+          gh release view v1.3.92 >/dev/null 2>&1 && { echo "Release v1.3.92 already exists; refusing to replace a distributed APK"; exit 1; } || true
+          gh release create v1.3.92 MELEHAT-TELSIZ.apk --title "MELEHAT TELSIZ v1.3.92" --notes "Fix weak sound in MELEHAT and other media apps while radio stays ON. Never hold Android MODE_IN_COMMUNICATION or AUDIOFOCUS_GAIN during passive listening. Native P2P duo and mesh receive audio use USAGE_MEDIA with existing microphone callbacks. Preserve radio/rooms/PTT/video/updates/signing. Device-specific Bluetooth behavior requires real-phone testing."
 
 
       - name: Verify APK package and signature
