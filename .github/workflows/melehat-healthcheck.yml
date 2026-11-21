@@ -1,43 +1,68 @@
-name: MELEHAT LiveKit Connection Health Check
+name: MELEHAT Server Health Check
+
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 8 * * *"
   push:
     paths:
       - ".github/workflows/melehat-healthcheck.yml"
+
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 4
     steps:
-      - name: Check token gateway and LiveKit host reachability
+      - name: Check Supabase Auth and LiveKit gateway
         shell: bash
         env:
-          HEALTH_URL: https://ecbzcexhpzntgrfpizxc.supabase.co/functions/v1/livekit-health
+          SUPABASE_URL: https://ecbzcexhpzntgrfpizxc.supabase.co
         run: |
           set -euo pipefail
-          for attempt in 1 2 3; do
-            echo "Attempt $attempt:"
-            if result=$(curl -sS --max-time 14 "$HEALTH_URL"); then
-              export HEALTH_JSON="$result"
-              python3 - <<'PY'
-          import json,os
-          j=json.loads(os.environ['HEALTH_JSON'])
-          print("LiveKit configured:", j.get("configured"))
-          print("LiveKit host reachable:", j.get("host_reachable"))
-          print("LiveKit server protocol:", j.get("server_protocol","unknown"))
-          print("Standard port:", j.get("standard_port","unknown"))
-          print("Room API:", j.get("room_api_ok","unknown"))
-          print("Signaling websocket:", j.get("signaling_websocket","unknown"))
-          print("Host HTTP response:", j.get("http_status","unavailable"))
-          print("Failure category:", j.get("failure","none"))
-          if j.get("room_api_ok") is not None: print("Room management API:", j.get("room_api_ok"))
-          print("WebSocket probe:", j.get("signaling_websocket","n/a"))
-          print("Token validation HTTP:", j.get("validate_http_status","n/a"))
-          print("WebSocket endpoint as HTTP:", j.get("rtc_plain_http_status","n/a"))
-          print("Latency (ms):", j.get("latency_ms","unknown"))
+          python3 - <<'PY'
+          import json, os, time, urllib.request, urllib.error, sys
+
+          base = os.environ["SUPABASE_URL"].rstrip("/")
+          checks = [
+              ("Supabase Auth", "/auth/v1/health", None),
+              ("LiveKit gateway", "/functions/v1/livekit-health", "livekit"),
+          ]
+          failed = []
+          for label, path, kind in checks:
+              error = "unavailable"
+              for attempt in range(1, 4):
+                  try:
+                      request = urllib.request.Request(base + path, headers={"User-Agent": "MELEHAT-health-monitor/1.0"})
+                      with urllib.request.urlopen(request, timeout=15) as response:
+                          status = response.status
+                          body = response.read(65536).decode("utf-8", "replace")
+                      if status != 200:
+                          raise RuntimeError(f"HTTP {status}")
+                      data = json.loads(body)
+                      if not isinstance(data, dict):
+                          raise RuntimeError("Unexpected JSON response")
+                      if kind == "livekit":
+                          if data.get("configured") is not True:
+                              raise RuntimeError("LiveKit not configured")
+                          if data.get("host_reachable") is not True:
+                              raise RuntimeError("LiveKit host not reachable")
+                          if data.get("room_api_ok") is False:
+                              raise RuntimeError("LiveKit room API unavailable")
+                      print(f"PASS {label}: HTTP {status}")
+                      error = None
+                      break
+                  except (urllib.error.URLError, ValueError, RuntimeError, TimeoutError) as exc:
+                      error = str(exc)[:250]
+                      print(f"Attempt {attempt}/3 for {label} failed: {error}")
+                      if attempt < 3:
+                          time.sleep(5)
+              if error is not None:
+                  failed.append(f"{label}: {error}")
+          if failed:
+              print("::error::MELEHAT service health check failed: " + "; ".join(failed))
+              sys.exit(1)
+          print("MELEHAT service health checks passed.")
           PY
-              exit 0
-            fi
-            sleep 3
-          done
-          exit 1
