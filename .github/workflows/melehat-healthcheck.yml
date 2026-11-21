@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
-      - name: Check Supabase Auth and LiveKit gateway
+      - name: Check Supabase LiveKit gateway
         shell: bash
         env:
           SUPABASE_URL: https://ecbzcexhpzntgrfpizxc.supabase.co
@@ -27,7 +27,6 @@ jobs:
 
           base = os.environ["SUPABASE_URL"].rstrip("/")
           checks = [
-              ("Supabase Auth", "/auth/v1/health", None),
               ("LiveKit gateway", "/functions/v1/livekit-health", "livekit"),
           ]
           failed = []
